@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Ruta de Lecturas",
+    "slug": "ruta-lecturas",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "rutalecturas",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F3EFE6",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ec.edu.epn.esfot.rutalecturas"
+    },
+    "android": {
+      "package": "ec.edu.epn.esfot.rutalecturas",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1F33",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "La cámara se usa para fotografiar el medidor de agua como respaldo de la lectura.",
+          "photosPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B1F33",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
