@@ -5,7 +5,6 @@ export const MOCKAPI_BASE_URL = 'https://6ae1f514bbb5412922996c7d.mockapi.io/';
 
 export const isMockApiConfigured = !MOCKAPI_BASE_URL.includes('TU-PROYECTO');
 
-// Los dos recursos que pide la prueba.
 export const RECURSO_MEDIDORES = 'medidores';
 export const RECURSO_LECTURAS = 'lecturas';
 

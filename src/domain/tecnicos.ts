@@ -1,4 +1,4 @@
-// R1: técnicos con datos quemados (la prueba no exige gestionar usuarios).
+// R1: técnicos con datos quemados .
 
 export interface Tecnico {
   codigo: string;
