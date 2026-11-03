@@ -1,16 +1,28 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
-import { Borde, Color, Espacio, Radio } from '@/constants/theme';
+import { Text, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 type Tipo = 'info' | 'alerta' | 'pendiente' | 'ok';
 
-const ESTILO: Record<Tipo, { fondo: string; borde: string; simbolo: string }> = {
-  info: { fondo: Color.aguaClaro, borde: Color.agua, simbolo: 'i' },
-  alerta: { fondo: Color.alertaFondo, borde: Color.alerta, simbolo: '!' },
-  pendiente: { fondo: Color.pendienteFondo, borde: Color.pendiente, simbolo: '…' },
-  ok: { fondo: Color.okFondo, borde: Color.ok, simbolo: '✓' },
+const CAJA: Record<Tipo, string> = {
+  info: 'bg-agua-claro border-agua',
+  alerta: 'bg-alerta-fondo border-alerta',
+  pendiente: 'bg-pendiente-fondo border-pendiente',
+  ok: 'bg-ok-fondo border-ok',
 };
+const PUNTO: Record<Tipo, string> = {
+  info: 'bg-agua',
+  alerta: 'bg-alerta',
+  pendiente: 'bg-pendiente',
+  ok: 'bg-ok',
+};
+const TITULO: Record<Tipo, string> = {
+  info: 'text-agua',
+  alerta: 'text-alerta',
+  pendiente: 'text-pendiente',
+  ok: 'text-ok',
+};
+const SIMBOLO: Record<Tipo, string> = { info: 'i', alerta: '!', pendiente: '…', ok: '✓' };
 
 interface Props {
   tipo: Tipo;
@@ -18,35 +30,25 @@ interface Props {
   children?: ReactNode;
 }
 
+// Los avisos aparecen deslizándose hacia arriba (FadeInUp): el técnico nota
+// que algo nuevo apareció sin que la pantalla salte de golpe.
 export function Aviso({ tipo, titulo, children }: Props) {
-  const e = ESTILO[tipo];
   return (
-    <View
-      style={[styles.aviso, { backgroundColor: e.fondo, borderColor: e.borde }]}
+    <Animated.View
+      entering={FadeInUp.duration(280)}
+      className={`flex-row gap-3 border-2 border-l-8 rounded-[10px] p-3 ${CAJA[tipo]}`}
       accessibilityRole={tipo === 'alerta' ? 'alert' : undefined}>
-      <View style={[styles.simbolo, { backgroundColor: e.borde }]}>
-        <Text style={styles.simboloTexto}>{e.simbolo}</Text>
+      <View className={`w-[26px] h-[26px] rounded-full items-center justify-center ${PUNTO[tipo]}`}>
+        <Text className="text-blanco font-black text-[15px]">{SIMBOLO[tipo]}</Text>
       </View>
-      <View style={styles.cuerpo}>
-        <Text style={[styles.titulo, { color: e.borde }]}>{titulo}</Text>
-        {typeof children === 'string' ? <Text style={styles.texto}>{children}</Text> : children}
+      <View className="flex-1 gap-1">
+        <Text className={`text-base font-black ${TITULO[tipo]}`}>{titulo}</Text>
+        {typeof children === 'string' ? (
+          <Text className="text-[15px] text-noche leading-[21px]">{children}</Text>
+        ) : (
+          children
+        )}
       </View>
-    </View>
+    </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  aviso: {
-    flexDirection: 'row',
-    gap: Espacio.m,
-    borderWidth: Borde,
-    borderLeftWidth: 8,
-    borderRadius: Radio.m,
-    padding: Espacio.m,
-  },
-  simbolo: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  simboloTexto: { color: Color.blanco, fontWeight: '900', fontSize: 15 },
-  cuerpo: { flex: 1, gap: 4 },
-  titulo: { fontSize: 16, fontWeight: '900' },
-  texto: { fontSize: 15, color: Color.noche, lineHeight: 21 },
-});

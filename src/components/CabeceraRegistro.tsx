@@ -1,8 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Encabezado } from '@/components/Encabezado';
 import { Pasos } from '@/components/Pasos';
-import { Color, Espacio } from '@/constants/theme';
 import type { Borrador } from '@/db/borradorRepo';
 
 interface Props {
@@ -19,10 +18,10 @@ export function CabeceraRegistro({ borrador, paso, onSalir }: Props) {
         titulo={borrador.medidorCodigo}
         volver={onSalir}
       />
-      <View style={styles.pasos}>
+      <View className="px-4 pt-3 gap-2 bg-papel">
         <Pasos actual={paso} />
         {borrador.medidor ? (
-          <Text style={styles.direccion} numberOfLines={1}>
+          <Text className="text-sm font-bold text-agua" numberOfLines={1}>
             {borrador.medidor.direccion} · {borrador.medidor.sector}
           </Text>
         ) : null}
@@ -30,8 +29,3 @@ export function CabeceraRegistro({ borrador, paso, onSalir }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  pasos: { paddingHorizontal: Espacio.l, paddingTop: Espacio.m, gap: Espacio.s, backgroundColor: Color.papel },
-  direccion: { fontSize: 14, fontWeight: '700', color: Color.agua },
-});

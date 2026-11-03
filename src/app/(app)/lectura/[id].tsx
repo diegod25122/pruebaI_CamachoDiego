@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Text, View } from 'react-native';
 
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
@@ -9,7 +9,8 @@ import { Encabezado } from '@/components/Encabezado';
 import { Ficha } from '@/components/Ficha';
 import { InsigniaEnvio, InsigniaVerificacion } from '@/components/Insignia';
 import { Pantalla } from '@/components/Pantalla';
-import { Color, Espacio, Radio, Texto } from '@/constants/theme';
+import { useColor } from '@/animaciones/useColores';
+import { tx } from '@/constants/clases';
 import { esEditable, tituloEstado, type LecturaLocal } from '@/domain/lectura';
 import type { Medidor } from '@/domain/medidor';
 import { claves } from '@/query/keys';
@@ -20,9 +21,9 @@ import { fechaHora, m3, nombrePeriodo } from '@/utils/formato';
 
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <View style={styles.dato}>
-      <Text style={Texto.etiqueta}>{etiqueta}</Text>
-      <Text style={styles.valor}>{valor}</Text>
+    <View className="flex-1 gap-1">
+      <Text className={tx.etiqueta}>{etiqueta}</Text>
+      <Text className="text-base font-bold text-noche">{valor}</Text>
     </View>
   );
 }
@@ -67,12 +68,13 @@ export default function LecturaScreen() {
   const { id, guardada } = useLocalSearchParams<{ id: string; guardada?: string }>();
   const client = useQueryClient();
   const { data: l, isPending } = useLecturaLocal(id);
+  const colorNoche = useColor('noche');
   const { borrador, iniciarCorreccion, descartar } = useBorrador();
 
   if (isPending) {
     return (
       <Pantalla encabezado={<Encabezado titulo="Lectura" volver />}>
-        <ActivityIndicator size="large" color={Color.noche} />
+        <ActivityIndicator size="large" color={colorNoche} />
       </Pantalla>
     );
   }
@@ -108,33 +110,33 @@ export default function LecturaScreen() {
 
   return (
     <Pantalla encabezado={<Encabezado antetitulo={`Lectura de ${nombrePeriodo(l.periodo)}`} titulo={l.medidorCodigo} volver />}>
-      <View style={styles.insignias}>
+      <View className="flex-row gap-2 flex-wrap">
         <InsigniaEnvio envio={l.envio} />
         {l.envio !== 'rechazada' ? <InsigniaVerificacion verificacion={l.verificacion} /> : null}
       </View>
 
       <AvisoEstado l={l} recienGuardada={guardada === '1'} />
 
-      <Ficha acento={l.anomalo ? Color.alerta : l.envio === 'enviada' ? Color.ok : Color.chaleco} punteada={l.envio !== 'enviada'}>
-        <View style={styles.bloque}>
+      <Ficha acento={l.anomalo ? 'bg-alerta' : l.envio === 'enviada' ? 'bg-ok' : 'bg-chaleco'} punteada={l.envio !== 'enviada'}>
+        <View className="gap-3">
           <Dato etiqueta="Estado del medidor" valor={tituloEstado(l.estadoMedidor)} />
           {l.estadoMedidor !== 'inaccesible' ? (
-            <View style={styles.dato}>
-              <Text style={Texto.etiqueta}>Lectura</Text>
+            <View className="flex-1 gap-1">
+              <Text className={tx.etiqueta}>Lectura</Text>
               <Contador valor={l.lectura} tamano="mediano" alerta={l.anomalo} />
             </View>
           ) : null}
-          <View style={styles.dosColumnas}>
+          <View className="flex-row gap-3">
             <Dato etiqueta="Lectura anterior" valor={m3(l.lecturaAnterior)} />
             <Dato etiqueta="Consumo" valor={l.consumo === null ? 'Por calcular' : m3(l.consumo)} />
           </View>
-          <View style={styles.dosColumnas}>
+          <View className="flex-row gap-3">
             <Dato etiqueta="Promedio mensual" valor={m3(l.consumoPromedio)} />
             <Dato etiqueta="Anomalía" valor={l.anomalo ? (l.anomaliaConfirmada ? 'Sí · revisada' : 'Sí') : 'No'} />
           </View>
           {l.motivo ? <Dato etiqueta="Motivo" valor={l.motivo} /> : null}
           {l.descripcionDanio ? <Dato etiqueta="Daño" valor={l.descripcionDanio} /> : null}
-          <View style={styles.dosColumnas}>
+          <View className="flex-row gap-3">
             <Dato etiqueta="Registrada" valor={fechaHora(l.registradaEn)} />
             <Dato etiqueta="Técnico" valor={l.tecnicoCodigo} />
           </View>
@@ -142,12 +144,12 @@ export default function LecturaScreen() {
         </View>
       </Ficha>
 
-      <View style={styles.bloque}>
-        <Text style={Texto.subtitulo}>Foto del medidor</Text>
+      <View className="gap-3">
+        <Text className={tx.subtitulo}>Foto del medidor</Text>
         {l.fotoNombre === null ? (
-          <Text style={Texto.pequeno}>Sin foto.</Text>
+          <Text className={tx.pequeno}>Sin foto.</Text>
         ) : fotoUri ? (
-          <Image source={{ uri: fotoUri }} style={styles.foto} accessibilityLabel="Foto del medidor" />
+          <Image source={{ uri: fotoUri }} className="w-full aspect-[4/3] rounded-[10px] border-2 border-noche bg-linea" accessibilityLabel="Foto del medidor" />
         ) : (
           <Aviso tipo="alerta" titulo="No se encontró la foto">
             El archivo ya no está en el teléfono.
@@ -158,28 +160,10 @@ export default function LecturaScreen() {
       {esEditable(l) ? (
         <Boton titulo="Corregir lectura" onPress={corregir} detalle="Solo mientras no se haya enviado" />
       ) : l.envio === 'enviada' ? (
-        <View style={styles.bloqueada}>
-          <Text style={styles.bloqueadaTexto}>🔒 Enviada: ya no se puede corregir</Text>
+        <View className="p-3 rounded-[10px] border-2 border-dashed border-ok items-center">
+          <Text className="font-black text-ok text-base">🔒 Enviada: ya no se puede corregir</Text>
         </View>
       ) : null}
     </Pantalla>
   );
 }
-
-const styles = StyleSheet.create({
-  insignias: { flexDirection: 'row', gap: Espacio.s, flexWrap: 'wrap' },
-  bloque: { gap: Espacio.m },
-  dato: { flex: 1, gap: 4 },
-  dosColumnas: { flexDirection: 'row', gap: Espacio.m },
-  valor: { fontSize: 16, fontWeight: '700', color: Color.noche },
-  foto: { width: '100%', aspectRatio: 4 / 3, borderRadius: Radio.m, borderWidth: 2, borderColor: Color.noche },
-  bloqueada: {
-    padding: Espacio.m,
-    borderRadius: Radio.m,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: Color.ok,
-    alignItems: 'center',
-  },
-  bloqueadaTexto: { fontWeight: '900', color: Color.ok, fontSize: 16 },
-});

@@ -1,46 +1,26 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-
-import { Borde, Color, Espacio, Radio } from '@/constants/theme';
+import { View } from 'react-native';
 
 interface Props {
   children: ReactNode;
-  // Color de la "sombra" desplazada: indica el estado de la ficha.
+  /** Clase del color de la "sombra" desplazada, ej. 'bg-chaleco'. */
   acento?: string;
   punteada?: boolean;
-  style?: StyleProp<ViewStyle>;
-  contenido?: StyleProp<ViewStyle>;
+  className?: string;
+  /** Clases extra para la cara de la ficha (padding, gap...). */
+  contenido?: string;
 }
 
 // Ficha impresa con borde de tinta y una sombra dura desplazada, dibujada con
 // una capa debajo (funciona igual en cualquier Android).
-export function Ficha({ children, acento = Color.noche, punteada, style, contenido }: Props) {
+export function Ficha({ children, acento = 'bg-noche', punteada, className = '', contenido = 'p-4' }: Props) {
   return (
-    <View style={[styles.marco, style]}>
-      <View style={[styles.sombra, { backgroundColor: acento }]} />
-      <View style={[styles.cara, punteada && styles.punteada, contenido]}>{children}</View>
+    <View className={`mr-1 mb-1 ${className}`}>
+      <View className={`absolute top-1 left-1 -right-1 -bottom-1 rounded-2xl ${acento}`} />
+      <View
+        className={`bg-tarjeta border-2 border-noche rounded-2xl ${punteada ? 'border-dashed' : ''} ${contenido}`}>
+        {children}
+      </View>
     </View>
   );
 }
-
-const DESPLAZAMIENTO = 4;
-
-const styles = StyleSheet.create({
-  marco: { marginRight: DESPLAZAMIENTO, marginBottom: DESPLAZAMIENTO },
-  sombra: {
-    position: 'absolute',
-    top: DESPLAZAMIENTO,
-    left: DESPLAZAMIENTO,
-    right: -DESPLAZAMIENTO,
-    bottom: -DESPLAZAMIENTO,
-    borderRadius: Radio.l,
-  },
-  cara: {
-    backgroundColor: Color.tarjeta,
-    borderWidth: Borde,
-    borderColor: Color.noche,
-    borderRadius: Radio.l,
-    padding: Espacio.l,
-  },
-  punteada: { borderStyle: 'dashed' },
-});

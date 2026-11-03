@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Text, View } from 'react-native';
 
 import { ErrorConfiguracion } from '@/api/oficina';
 import { Aviso } from '@/components/Aviso';
@@ -8,7 +8,8 @@ import { Boton } from '@/components/Boton';
 import { Encabezado } from '@/components/Encabezado';
 import { FichaMedidor } from '@/components/FichaMedidor';
 import { Pantalla } from '@/components/Pantalla';
-import { Color, Espacio, Texto } from '@/constants/theme';
+import { useColor } from '@/animaciones/useColores';
+import { tx } from '@/constants/clases';
 import { periodoDe } from '@/domain/lectura';
 import { referenciaDe, validarCodigoMedidor, type Medidor } from '@/domain/medidor';
 import { useLecturasLocales, useLecturasOficina, useMedidor } from '@/query/hooks';
@@ -29,6 +30,7 @@ export default function MedidorScreen() {
   const oficinaQ = useLecturasOficina(codigo, periodo);
   const { data: locales } = useLecturasLocales();
   const { borrador, iniciarNueva, descartar } = useBorrador();
+  const colorNoche = useColor('noche');
 
   if (!validacion.ok) {
     return (
@@ -71,7 +73,7 @@ export default function MedidorScreen() {
   const botonRegistrar = (medidor: Medidor | null) => {
     if (local) {
       return (
-        <View style={styles.bloque}>
+        <View className="gap-3">
           <Aviso tipo="alerta" titulo={`Ya registrado en ${nombrePeriodo(periodo)}`}>
             No se puede registrar dos veces el mismo medidor en el mismo mes.
           </Aviso>
@@ -110,9 +112,9 @@ export default function MedidorScreen() {
         : `Datos de la oficina de las ${hora(dataUpdatedAt)} (guardados para la jornada)`;
     contenido = (
       <>
-        <View style={styles.origen}>
-          <View style={[styles.puntoOrigen, conexion === 'sin-red' && styles.puntoSinRed]} />
-          <Text style={Texto.pequeno}>{origen}</Text>
+        <View className="flex-row items-center gap-2">
+          <View className={`w-2.5 h-2.5 rounded-full ${conexion === 'sin-red' ? 'bg-pendiente' : 'bg-ok'}`} />
+          <Text className={tx.pequeno}>{origen}</Text>
         </View>
         <FichaMedidor medidor={data} />
         {botonRegistrar(data)}
@@ -137,7 +139,7 @@ export default function MedidorScreen() {
     );
   } else if (isError) {
     contenido = (
-      <View style={styles.bloque}>
+      <View className="gap-3">
         <Aviso tipo="alerta" titulo="No se pudo consultar la oficina">
           {error instanceof ErrorConfiguracion ? error.message : 'La oficina no respondió. Intenta de nuevo.'}
         </Aviso>
@@ -146,9 +148,9 @@ export default function MedidorScreen() {
     );
   } else {
     contenido = (
-      <View style={styles.cargando}>
-        <ActivityIndicator size="large" color={Color.noche} />
-        <Text style={Texto.cuerpo}>Consultando a la oficina…</Text>
+      <View className="items-center gap-3 py-8">
+        <ActivityIndicator size="large" color={colorNoche} />
+        <Text className={tx.cuerpo}>Consultando a la oficina…</Text>
       </View>
     );
   }
@@ -159,11 +161,3 @@ export default function MedidorScreen() {
     </Pantalla>
   );
 }
-
-const styles = StyleSheet.create({
-  bloque: { gap: Espacio.m },
-  cargando: { alignItems: 'center', gap: Espacio.m, paddingVertical: Espacio.xxl },
-  origen: { flexDirection: 'row', alignItems: 'center', gap: Espacio.s },
-  puntoOrigen: { width: 10, height: 10, borderRadius: 5, backgroundColor: Color.ok },
-  puntoSinRed: { backgroundColor: Color.pendiente },
-});

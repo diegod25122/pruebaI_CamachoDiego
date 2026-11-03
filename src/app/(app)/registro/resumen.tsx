@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Text, View } from 'react-native';
 
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
@@ -9,7 +9,7 @@ import { CabeceraRegistro } from '@/components/CabeceraRegistro';
 import { Contador } from '@/components/Contador';
 import { Ficha } from '@/components/Ficha';
 import { Pantalla } from '@/components/Pantalla';
-import { Color, Espacio, Radio, Texto } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 import { ErrorLecturaDuplicada, ErrorNoEditable } from '@/db/lecturasRepo';
 import { tituloEstado } from '@/domain/lectura';
 import { CAMPOS_PASO_1, erroresDe, hayErrores } from '@/domain/reglas';
@@ -23,9 +23,9 @@ import { m3, nombrePeriodo, veces } from '@/utils/formato';
 
 function Linea({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <View style={styles.linea}>
-      <Text style={Texto.etiqueta}>{etiqueta}</Text>
-      <Text style={styles.valor}>{valor}</Text>
+    <View className="gap-1">
+      <Text className={tx.etiqueta}>{etiqueta}</Text>
+      <Text className="text-[17px] font-bold text-noche">{valor}</Text>
     </View>
   );
 }
@@ -34,13 +34,13 @@ function Linea({ etiqueta, valor }: { etiqueta: string; valor: string }) {
 // sincronizador (ahora si hay señal, o cuando vuelva).
 export default function PasoResumen() {
   const client = useQueryClient();
-  const { sesion } = useSesion();
+  const { usuario } = useSesion();
   const { conexion, sincronizarAhora } = useSync();
   const { borrador, cargado, evaluacion, irA, salir, terminar } = useRegistro(3);
   const [guardando, setGuardando] = useState(false);
 
   if (!cargado) return null;
-  if (!borrador || !evaluacion || !sesion) return <Redirect href="/" />;
+  if (!borrador || !evaluacion || !usuario) return <Redirect href="/" />;
 
   const { datos } = borrador;
   const fotoUri = datos.fotoNombre ? uriDeFoto(datos.fotoNombre) : null;
@@ -50,7 +50,7 @@ export default function PasoResumen() {
   const guardar = async () => {
     setGuardando(true);
     try {
-      const lectura = await guardarCaptura(borrador, sesion.tecnico.codigo);
+      const lectura = await guardarCaptura(borrador, usuario.email ?? usuario.uid);
       router.dismissTo('/');
       router.push({ pathname: '/lectura/[id]', params: { id: lectura.id, guardada: '1' } });
       await terminar();
@@ -78,10 +78,10 @@ export default function PasoResumen() {
       encabezado={<CabeceraRegistro borrador={borrador} paso={3} onSalir={salir} />}
       pie={
         <>
-          <View style={styles.pieBoton}>
+          <View className="flex-1">
             <Boton titulo="Anterior" variante="secundario" onPress={() => irA(2)} />
           </View>
-          <View style={styles.pieBoton}>
+          <View className="flex-1">
             <Boton
               titulo={borrador.editando ? 'Guardar corrección' : 'Guardar lectura'}
               onPress={() => void guardar()}
@@ -104,14 +104,14 @@ export default function PasoResumen() {
         />
       ) : null}
 
-      <Ficha acento={evaluacion.anomalo ? Color.alerta : Color.chaleco}>
-        <View style={styles.bloque}>
+      <Ficha acento={evaluacion.anomalo ? 'bg-alerta' : 'bg-chaleco'}>
+        <View className="gap-3">
           <Linea etiqueta="Medidor" valor={borrador.medidorCodigo} />
           <Linea etiqueta="Mes" valor={nombrePeriodo(borrador.periodo)} />
           <Linea etiqueta="Estado" valor={datos.estadoMedidor ? tituloEstado(datos.estadoMedidor) : '—'} />
           {datos.estadoMedidor !== 'inaccesible' ? (
-            <View style={styles.linea}>
-              <Text style={Texto.etiqueta}>Lectura</Text>
+            <View className="gap-1">
+              <Text className={tx.etiqueta}>Lectura</Text>
               <Contador valor={evaluacion.lectura} tamano="pequeno" alerta={evaluacion.anomalo} />
             </View>
           ) : null}
@@ -124,7 +124,7 @@ export default function PasoResumen() {
           {datos.estadoMedidor === 'inaccesible' ? <Linea etiqueta="Motivo" valor={datos.motivo} /> : null}
           {datos.estadoMedidor === 'danado' ? <Linea etiqueta="Daño" valor={datos.descripcionDanio} /> : null}
           <Linea etiqueta="Foto" valor={fotoUri ? 'Adjunta' : 'Sin foto'} />
-          {fotoUri ? <Image source={{ uri: fotoUri }} style={styles.foto} /> : null}
+          {fotoUri ? <Image source={{ uri: fotoUri }} className="w-full aspect-[4/3] rounded-[10px] border-2 border-noche bg-linea" /> : null}
         </View>
       </Ficha>
 
@@ -141,11 +141,3 @@ export default function PasoResumen() {
     </Pantalla>
   );
 }
-
-const styles = StyleSheet.create({
-  pieBoton: { flex: 1 },
-  bloque: { gap: Espacio.m },
-  linea: { gap: 4 },
-  valor: { fontSize: 17, fontWeight: '700', color: Color.noche },
-  foto: { width: '100%', aspectRatio: 4 / 3, borderRadius: Radio.m, borderWidth: 2, borderColor: Color.noche },
-});

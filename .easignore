@@ -1,0 +1,14 @@
+# EAS usa este archivo en lugar de .gitignore al subir el proyecto para compilar.
+# Es igual a .gitignore pero SIN excluir .env.local: así el APK lleva la
+# configuración de Firebase (ver ADR-011).
+node_modules/
+.expo/
+dist/
+web-build/
+*.apk
+*.aab
+npm-debug.*
+.DS_Store
+expo-env.d.ts
+android/
+ios/

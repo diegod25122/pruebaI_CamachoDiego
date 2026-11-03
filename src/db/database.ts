@@ -5,6 +5,7 @@ import * as SQLite from 'expo-sqlite';
 
 export const db = SQLite.openDatabaseSync('ruta-lecturas.db');
 
+
 const ESQUEMA = `
 PRAGMA journal_mode = WAL;
 

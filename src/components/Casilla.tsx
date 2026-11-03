@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 
-import { Borde, Color, Espacio, Radio } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 
 interface Props {
   marcada: boolean;
@@ -11,46 +12,25 @@ interface Props {
 
 export function Casilla({ marcada, onCambiar, texto, error }: Props) {
   return (
-    <View style={styles.contenedor}>
+    <View className="gap-1">
       <Pressable
         onPress={() => onCambiar(!marcada)}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: marcada }}
-        style={[styles.fila, !!error && styles.filaError]}>
-        <View style={[styles.caja, marcada && styles.cajaMarcada]}>
-          {marcada ? <Text style={styles.check}>✓</Text> : null}
+        className={`flex-row items-center gap-3 p-3 rounded-[10px] bg-tarjeta ${
+          error ? 'border-[3px] border-alerta' : 'border-2 border-noche'
+        }`}>
+        <View
+          className={`w-[30px] h-[30px] rounded-md border-2 border-noche items-center justify-center ${marcada ? 'bg-noche' : ''}`}>
+          {marcada ? (
+            <Animated.Text entering={ZoomIn.springify()} className="text-chaleco text-xl font-black">
+              ✓
+            </Animated.Text>
+          ) : null}
         </View>
-        <Text style={styles.texto}>{texto}</Text>
+        <Text className="flex-1 text-base font-bold text-noche">{texto}</Text>
       </Pressable>
-      {error ? <Text style={styles.error}>✕ {error}</Text> : null}
+      {error ? <Text className={tx.error}>✕ {error}</Text> : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  contenedor: { gap: Espacio.xs },
-  fila: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Espacio.m,
-    padding: Espacio.m,
-    borderWidth: Borde,
-    borderColor: Color.noche,
-    borderRadius: Radio.m,
-    backgroundColor: Color.tarjeta,
-  },
-  filaError: { borderColor: Color.alerta, borderWidth: 3 },
-  caja: {
-    width: 30,
-    height: 30,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Color.noche,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cajaMarcada: { backgroundColor: Color.noche },
-  check: { color: Color.chaleco, fontSize: 20, fontWeight: '900' },
-  texto: { flex: 1, fontSize: 16, fontWeight: '700', color: Color.noche },
-  error: { color: Color.alerta, fontSize: 14, fontWeight: '700' },
-});

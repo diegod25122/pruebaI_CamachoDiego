@@ -6,6 +6,9 @@ de Desarrollo Móvil (ESFOT).
 
 - React Native + **Expo SDK 57** + TypeScript (expo-router)
 - Sistema de la oficina simulado con **MockAPI** (`medidores` y `lecturas`)
+- **Deber 5:** login con **Firebase Authentication** (registro, verificación de correo, recuperación,
+  cambio de contraseña y edición del nombre), indicador de seguridad de la contraseña,
+  animaciones con **Reanimated** y estilos con **Uniwind** (Tailwind CSS 4). Decisiones en `docs/adr/`.
 - Análisis, requisitos y justificación de cada dependencia:
   [`docs/analisis-y-decisiones.md`](docs/analisis-y-decisiones.md)
 - Guion de la demostración y preguntas de la defensa: [`docs/defensa.md`](docs/defensa.md)
@@ -14,9 +17,18 @@ de Desarrollo Móvil (ESFOT).
 
 ```bash
 npm install
-npx expo install --fix   # alinea las versiones con el SDK 57
-npm test                 # 31 pruebas de reglas y sincronización
+npx expo start -c        # la primera vez: limpia la caché y genera los tipos de Uniwind
+npm test                 # pruebas de reglas, sincronización y contraseña
 ```
+
+## 1.1 Firebase (Deber 5)
+
+1. En la consola de Firebase: crear el proyecto, registrar una **app web** (`</>`) y activar
+   **Authentication → Método de acceso → Correo electrónico/contraseña**.
+2. Copiar `.env.example` como `.env.local` y pegar los valores del `firebaseConfig`.
+3. Si se cambia `.env.local` con el servidor encendido: `npx expo start -c`.
+
+`.env.local` no se sube a GitHub. El archivo `.easignore` sí lo incluye al compilar el APK con EAS.
 
 ## 2. Configurar MockAPI
 

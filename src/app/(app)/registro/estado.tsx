@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
@@ -9,7 +9,7 @@ import { Campo } from '@/components/Campo';
 import { Contador } from '@/components/Contador';
 import { Pantalla } from '@/components/Pantalla';
 import { SelectorEstado } from '@/components/SelectorEstado';
-import { Color, Espacio, Texto } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 import type { EstadoMedidor } from '@/domain/lectura';
 import { CAMPOS_PASO_1, erroresDe, hayErrores } from '@/domain/reglas';
 import { useRegistro } from '@/state/useRegistro';
@@ -42,7 +42,7 @@ export default function PasoEstado() {
   };
 
   const campoLectura = (obligatoria: boolean) => (
-    <View style={styles.bloque}>
+    <View className="gap-3">
       <Campo
         etiqueta={obligatoria ? 'Lectura actual (m³)' : 'Lectura actual (m³) · opcional'}
         obligatorio={obligatoria}
@@ -56,15 +56,15 @@ export default function PasoEstado() {
         ayuda={obligatoria ? undefined : 'Si el contador se puede leer, anótalo.'}
       />
       {referencia ? (
-        <View style={styles.anterior}>
-          <Text style={Texto.etiqueta}>Lectura anterior</Text>
+        <View className="gap-1">
+          <Text className={tx.etiqueta}>Lectura anterior</Text>
           <Contador valor={referencia.lecturaAnterior} tamano="pequeno" />
         </View>
       ) : (
-        <Text style={Texto.pequeno}>Sin datos del medidor: el consumo se calculará al recuperar la señal.</Text>
+        <Text className={tx.pequeno}>Sin datos del medidor: el consumo se calculará al recuperar la señal.</Text>
       )}
       {evaluacion.consumo !== null ? (
-        <Text style={[styles.consumo, evaluacion.anomalo && styles.consumoAlerta]}>
+        <Text className={`text-base font-extrabold ${evaluacion.anomalo ? 'text-alerta' : 'text-agua'}`}>
           Consumo del mes: {m3(evaluacion.consumo)}
           {evaluacion.anomalo ? ` · ${veces(evaluacion.veces)} el promedio` : ''}
         </Text>
@@ -76,28 +76,28 @@ export default function PasoEstado() {
     <Pantalla
       encabezado={<CabeceraRegistro borrador={borrador} paso={1} onSalir={salir} />}
       pie={
-        <View style={styles.pie}>
+        <View className="flex-1">
           <Boton titulo="Siguiente" onPress={siguiente} />
         </View>
       }>
-      <Text style={Texto.subtitulo}>¿Cómo encontraste el medidor?</Text>
+      <Text className={tx.subtitulo}>¿Cómo encontraste el medidor?</Text>
       <SelectorEstado valor={datos.estadoMedidor} onCambiar={elegirEstado} error={errores.estado} />
 
       {datos.estadoMedidor === 'normal' ? campoLectura(true) : null}
 
       {datos.estadoMedidor === 'inaccesible' ? (
-        <View style={styles.bloque}>
+        <View className="gap-3">
           <Aviso tipo="pendiente" titulo="No se registra lectura">
             Si no pudiste llegar al medidor, indica el motivo.
           </Aviso>
-          <View style={styles.chips}>
+          <View className="flex-row flex-wrap gap-2">
             {MOTIVOS.map((m) => (
               <Pressable
                 key={m}
                 onPress={() => cambiarDatos({ motivo: m })}
                 accessibilityRole="button"
-                style={[styles.chip, datos.motivo === m && styles.chipActivo]}>
-                <Text style={[styles.chipTexto, datos.motivo === m && styles.chipTextoActivo]}>{m}</Text>
+                className={`border-2 border-noche rounded-full px-3 py-2 ${datos.motivo === m ? 'bg-noche' : 'bg-tarjeta'}`}>
+                <Text className={`font-bold ${datos.motivo === m ? 'text-chaleco' : 'text-noche'}`}>{m}</Text>
               </Pressable>
             ))}
           </View>
@@ -114,7 +114,7 @@ export default function PasoEstado() {
       ) : null}
 
       {datos.estadoMedidor === 'danado' ? (
-        <View style={styles.bloque}>
+        <View className="gap-3">
           <Campo
             etiqueta="Descripción del daño"
             obligatorio
@@ -133,23 +133,3 @@ export default function PasoEstado() {
     </Pantalla>
   );
 }
-
-const styles = StyleSheet.create({
-  pie: { flex: 1 },
-  bloque: { gap: Espacio.m },
-  anterior: { gap: 4 },
-  consumo: { fontSize: 16, fontWeight: '800', color: Color.agua },
-  consumoAlerta: { color: Color.alerta },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Espacio.s },
-  chip: {
-    borderWidth: 2,
-    borderColor: Color.noche,
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: Color.tarjeta,
-  },
-  chipActivo: { backgroundColor: Color.noche },
-  chipTexto: { fontWeight: '700', color: Color.noche },
-  chipTextoActivo: { color: Color.chaleco },
-});

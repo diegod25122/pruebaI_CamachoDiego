@@ -1,6 +1,5 @@
 import { periodoDe } from '@/domain/lectura';
 import { parseMedidor, validarCodigoMedidor } from '@/domain/medidor';
-import { autenticar } from '@/domain/tecnicos';
 
 describe('R2: código del medidor', () => {
   it('acepta MED- seguido de seis dígitos (también en minúsculas)', () => {
@@ -38,15 +37,9 @@ describe('parseMedidor', () => {
   });
 });
 
-describe('periodo y técnicos', () => {
+describe('periodo', () => {
   it('el periodo es año-mes', () => {
     expect(periodoDe(new Date(2026, 9, 28))).toBe('2026-10');
     expect(periodoDe(new Date(2026, 0, 2))).toBe('2026-01');
-  });
-  it('R1: autentica con código y clave, sin devolver la clave', () => {
-    const t = autenticar('emp-1001', 'agua2026');
-    expect(t?.nombre).toBe('María Guamán');
-    expect(t).not.toHaveProperty('clave');
-    expect(autenticar('EMP-1001', 'otra')).toBeNull();
   });
 });

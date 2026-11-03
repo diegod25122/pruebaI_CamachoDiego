@@ -1,10 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
-import { Borde, Color, Espacio, Radio } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 import { ESTADOS_MEDIDOR, type EstadoMedidor } from '@/domain/lectura';
 
 const SIMBOLO: Record<EstadoMedidor, string> = { normal: '✓', inaccesible: '⛔', danado: '⚠' };
-const ACENTO: Record<EstadoMedidor, string> = { normal: Color.ok, inaccesible: Color.pendiente, danado: Color.alerta };
+const BORDE: Record<EstadoMedidor, string> = {
+  normal: 'border-ok',
+  inaccesible: 'border-pendiente',
+  danado: 'border-alerta',
+};
+const FONDO: Record<EstadoMedidor, string> = { normal: 'bg-ok', inaccesible: 'bg-pendiente', danado: 'bg-alerta' };
 
 interface Props {
   valor: EstadoMedidor | null;
@@ -15,7 +20,7 @@ interface Props {
 // R5: los tres estados del medidor como tarjetas grandes con su regla visible.
 export function SelectorEstado({ valor, onCambiar, error }: Props) {
   return (
-    <View style={styles.contenedor} accessibilityRole="radiogroup">
+    <View className="gap-2" accessibilityRole="radiogroup">
       {ESTADOS_MEDIDOR.map((e) => {
         const activo = valor === e.valor;
         return (
@@ -24,52 +29,25 @@ export function SelectorEstado({ valor, onCambiar, error }: Props) {
             onPress={() => onCambiar(e.valor)}
             accessibilityRole="radio"
             accessibilityState={{ checked: activo }}
-            style={[styles.opcion, activo && { borderColor: ACENTO[e.valor], backgroundColor: Color.tarjeta }]}>
-            <View style={[styles.simbolo, { backgroundColor: activo ? ACENTO[e.valor] : Color.linea }]}>
-              <Text style={styles.simboloTexto}>{SIMBOLO[e.valor]}</Text>
+            className={`flex-row items-center gap-3 min-h-16 p-3 border-[3px] rounded-[10px] ${
+              activo ? `bg-tarjeta ${BORDE[e.valor]}` : 'bg-papel-oscuro border-linea'
+            }`}>
+            <View
+              className={`w-[38px] h-[38px] rounded-full items-center justify-center ${activo ? FONDO[e.valor] : 'bg-linea'}`}>
+              <Text className="text-blanco text-lg font-black">{SIMBOLO[e.valor]}</Text>
             </View>
-            <View style={styles.textos}>
-              <Text style={styles.titulo}>{e.titulo}</Text>
-              <Text style={styles.regla}>{e.regla}</Text>
+            <View className="flex-1">
+              <Text className="text-lg font-black text-noche">{e.titulo}</Text>
+              <Text className="text-[13px] text-tenue font-semibold">{e.regla}</Text>
             </View>
-            <View style={[styles.radio, activo && { borderColor: ACENTO[e.valor] }]}>
-              {activo ? <View style={[styles.radioPunto, { backgroundColor: ACENTO[e.valor] }]} /> : null}
+            <View
+              className={`w-6 h-6 rounded-full border-2 items-center justify-center ${activo ? BORDE[e.valor] : 'border-tenue'}`}>
+              {activo ? <View className={`w-3 h-3 rounded-full ${FONDO[e.valor]}`} /> : null}
             </View>
           </Pressable>
         );
       })}
-      {error ? <Text style={styles.error}>✕ {error}</Text> : null}
+      {error ? <Text className={tx.error}>✕ {error}</Text> : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  contenedor: { gap: Espacio.s },
-  opcion: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Espacio.m,
-    minHeight: 64,
-    padding: Espacio.m,
-    borderWidth: Borde + 1,
-    borderColor: Color.linea,
-    borderRadius: Radio.m,
-    backgroundColor: '#FBF9F4',
-  },
-  simbolo: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
-  simboloTexto: { color: Color.blanco, fontSize: 18, fontWeight: '900' },
-  textos: { flex: 1 },
-  titulo: { fontSize: 18, fontWeight: '900', color: Color.noche },
-  regla: { fontSize: 13, color: Color.tenue, fontWeight: '600' },
-  radio: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Color.tenue,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioPunto: { width: 12, height: 12, borderRadius: 6 },
-  error: { color: Color.alerta, fontSize: 14, fontWeight: '700' },
-});

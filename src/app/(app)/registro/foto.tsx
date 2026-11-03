@@ -1,6 +1,6 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Image, Linking, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Text, View } from 'react-native';
 
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
@@ -10,7 +10,7 @@ import { Contador } from '@/components/Contador';
 import { Ficha } from '@/components/Ficha';
 import { Insignia } from '@/components/Insignia';
 import { Pantalla } from '@/components/Pantalla';
-import { Color, Espacio, Radio, Texto } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 import { FACTOR_ANOMALIA } from '@/config';
 import { CAMPOS_PASO_2, erroresDe, hayErrores } from '@/domain/reglas';
 import { tomarFoto } from '@/services/camara';
@@ -81,20 +81,20 @@ export default function PasoFoto() {
       encabezado={<CabeceraRegistro borrador={borrador} paso={2} onSalir={salir} />}
       pie={
         <>
-          <View style={styles.pieBoton}>
+          <View className="flex-1">
             <Boton titulo="Anterior" variante="secundario" onPress={() => irA(1)} />
           </View>
-          <View style={styles.pieBoton}>
+          <View className="flex-1">
             <Boton titulo="Siguiente" onPress={siguiente} />
           </View>
         </>
       }>
       {/* R6: consumo del mes */}
-      <Ficha acento={evaluacion.anomalo ? Color.alerta : Color.agua}>
-        <View style={styles.bloque}>
-          <Text style={Texto.subtitulo}>Consumo del mes</Text>
+      <Ficha acento={evaluacion.anomalo ? 'bg-alerta' : 'bg-agua'}>
+        <View className="gap-3">
+          <Text className={tx.subtitulo}>Consumo del mes</Text>
           {evaluacion.lectura === null ? (
-            <Text style={Texto.cuerpo}>Sin lectura: no se calcula consumo.</Text>
+            <Text className={tx.cuerpo}>Sin lectura: no se calcula consumo.</Text>
           ) : !referencia ? (
             <Aviso tipo="pendiente" titulo="Pendiente de verificar">
               Sin datos del medidor en el teléfono. Al recuperar la señal se comparará con la lectura anterior de la
@@ -102,18 +102,18 @@ export default function PasoFoto() {
             </Aviso>
           ) : (
             <>
-              <View style={styles.fila}>
-                <Text style={Texto.etiqueta}>Anterior</Text>
+              <View className="flex-row items-center justify-between gap-2 flex-wrap">
+                <Text className={tx.etiqueta}>Anterior</Text>
                 <Contador valor={referencia.lecturaAnterior} tamano="pequeno" />
               </View>
-              <View style={styles.fila}>
-                <Text style={Texto.etiqueta}>Actual</Text>
+              <View className="flex-row items-center justify-between gap-2 flex-wrap">
+                <Text className={tx.etiqueta}>Actual</Text>
                 <Contador valor={evaluacion.lectura} tamano="pequeno" alerta={evaluacion.anomalo} />
               </View>
-              <View style={styles.separador} />
-              <View style={styles.fila}>
-                <Text style={styles.consumo}>{m3(evaluacion.consumo)}</Text>
-                <Text style={Texto.pequeno}>
+              <View className="h-0.5 bg-linea" />
+              <View className="flex-row items-center justify-between gap-2 flex-wrap">
+                <Text className="text-[28px] font-black text-noche">{m3(evaluacion.consumo)}</Text>
+                <Text className={tx.pequeno}>
                   Promedio {m3(referencia.consumoPromedio)} · límite {m3(referencia.consumoPromedio * FACTOR_ANOMALIA)}
                 </Text>
               </View>
@@ -123,7 +123,7 @@ export default function PasoFoto() {
       </Ficha>
 
       {evaluacion.anomalo ? (
-        <View style={styles.bloque}>
+        <View className="gap-3">
           <Aviso tipo="alerta" titulo={`Consumo anómalo: ${veces(evaluacion.veces)} el promedio`}>
             Supera el triple del consumo promedio. Revisa el medidor (fugas, dígitos mal leídos) antes de continuar.
           </Aviso>
@@ -137,28 +137,28 @@ export default function PasoFoto() {
       ) : null}
 
       {/* R7: foto del medidor */}
-      <View style={styles.bloque}>
-        <View style={styles.fila}>
-          <Text style={Texto.subtitulo}>Foto del medidor</Text>
+      <View className="gap-3">
+        <View className="flex-row items-center justify-between gap-2 flex-wrap">
+          <Text className={tx.subtitulo}>Foto del medidor</Text>
           <Insignia
             texto={evaluacion.fotoObligatoria ? 'Obligatoria' : 'Opcional'}
             tono={evaluacion.fotoObligatoria ? 'alerta' : 'neutro'}
           />
         </View>
-        <Text style={Texto.pequeno}>{motivoFoto}</Text>
+        <Text className={tx.pequeno}>{motivoFoto}</Text>
 
         {fotoUri ? (
-          <Image source={{ uri: fotoUri }} style={styles.foto} accessibilityLabel="Foto del medidor" />
+          <Image source={{ uri: fotoUri }} className="w-full aspect-[4/3] rounded-[10px] border-2 border-noche bg-linea" accessibilityLabel="Foto del medidor" />
         ) : null}
 
         {sinPermiso ? (
           <Aviso tipo={evaluacion.fotoObligatoria ? 'alerta' : 'info'} titulo="Sin permiso para usar la cámara">
-            <Text style={styles.textoAviso}>
+            <Text className="text-[15px] text-noche leading-[21px]">
               La app necesita la cámara para fotografiar el medidor. Esa foto es el respaldo de lo que marcaba el
               medidor el día de la visita: protege al técnico y a la empresa cuando un cliente reclama por un consumo
               alto o el medidor está dañado. Solo se usa cuando tú tocas «Tomar foto».
             </Text>
-            <Text style={[styles.textoAviso, styles.negrita]}>
+            <Text className="text-[15px] text-noche leading-[21px] font-extrabold">
               {evaluacion.fotoObligatoria
                 ? 'En este caso la foto es obligatoria: concede el permiso para poder guardar la lectura.'
                 : 'Aquí la foto es opcional: puedes continuar sin ella.'}
@@ -176,27 +176,8 @@ export default function PasoFoto() {
           cargando={tomando}
         />
         {fotoUri ? <Boton titulo="Quitar foto" variante="texto" onPress={quitarFoto} /> : null}
-        {errores.foto ? <Text style={styles.error}>✕ {errores.foto}</Text> : null}
+        {errores.foto ? <Text className="text-sm font-bold text-alerta">✕ {errores.foto}</Text> : null}
       </View>
     </Pantalla>
   );
 }
-
-const styles = StyleSheet.create({
-  pieBoton: { flex: 1 },
-  bloque: { gap: Espacio.m },
-  fila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Espacio.s, flexWrap: 'wrap' },
-  separador: { height: 2, backgroundColor: Color.linea },
-  consumo: { fontSize: 28, fontWeight: '900', color: Color.noche },
-  foto: {
-    width: '100%',
-    aspectRatio: 4 / 3,
-    borderRadius: Radio.m,
-    borderWidth: 2,
-    borderColor: Color.noche,
-    backgroundColor: Color.linea,
-  },
-  textoAviso: { fontSize: 15, color: Color.noche, lineHeight: 21 },
-  negrita: { fontWeight: '800' },
-  error: { color: Color.alerta, fontSize: 14, fontWeight: '700' },
-});

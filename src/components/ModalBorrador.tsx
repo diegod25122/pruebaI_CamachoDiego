@@ -1,30 +1,32 @@
 import { router, usePathname } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, Text, View } from 'react-native';
+import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 
 import { Boton } from '@/components/Boton';
 import { Cinta } from '@/components/Cinta';
-import { Borde, Color, Espacio, Radio, Texto } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 import { tituloEstado } from '@/domain/lectura';
-import { useSesion } from '@/state/sesion';
 import { RUTA_PASO, useBorrador } from '@/state/borrador';
+import { useSesion } from '@/state/sesion';
 import { fechaHora } from '@/utils/formato';
 
 // R8: al abrir la app con un registro a medias, ofrece continuarlo o
 // descartarlo. Se revisa una sola vez por apertura (o al iniciar sesión).
+// La tarjeta sube desde abajo con resorte (SlideInDown) sobre un velo que aparece.
 export function ModalBorrador() {
-  const { sesion } = useSesion();
+  const { usuario, verificado } = useSesion();
   const { borrador, cargado, descartar } = useBorrador();
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const revisado = useRef(false);
+  const dentro = usuario !== null && verificado;
 
-  // Se decide una sola vez: cuando ya se leyó el borrador y hay sesión.
   useEffect(() => {
-    if (revisado.current || !cargado || sesion === null) return;
+    if (revisado.current || !cargado || !dentro) return;
     revisado.current = true;
     if (borrador !== null && !pathname.startsWith('/registro')) setVisible(true);
-  }, [cargado, sesion, borrador, pathname]);
+  }, [cargado, dentro, borrador, pathname]);
 
   if (!visible || !borrador) return null;
 
@@ -47,38 +49,26 @@ export function ModalBorrador() {
   };
 
   return (
-    <Modal transparent animationType="fade" visible onRequestClose={() => setVisible(false)}>
-      <View style={styles.fondo}>
-        <View style={styles.tarjeta}>
-          <Cinta alto={12} />
-          <View style={styles.cuerpo}>
-            <Text style={Texto.etiqueta}>{borrador.editando ? 'Corrección sin terminar' : 'Registro sin terminar'}</Text>
-            <Text style={[Texto.codigo, styles.codigo]}>{borrador.medidorCodigo}</Text>
-            <Text style={Texto.cuerpo}>
+    <Modal transparent animationType="none" visible onRequestClose={() => setVisible(false)}>
+      <Animated.View entering={FadeIn.duration(250)} className="flex-1 bg-velo justify-center p-4">
+        <Animated.View
+          entering={SlideInDown.springify().damping(16)}
+          className="bg-papel rounded-2xl border-2 border-noche overflow-hidden">
+          <Cinta alta animada />
+          <View className="p-4 gap-2">
+            <Text className={tx.etiqueta}>{borrador.editando ? 'Corrección sin terminar' : 'Registro sin terminar'}</Text>
+            <Text className={`${tx.codigo} text-[26px] text-noche`}>{borrador.medidorCodigo}</Text>
+            <Text className={tx.cuerpo}>
               La app se cerró en el paso {borrador.paso} de 3. {resumen}.
             </Text>
-            <Text style={Texto.pequeno}>Empezado: {fechaHora(borrador.iniciadoEn)}</Text>
-            <View style={styles.botones}>
+            <Text className={tx.pequeno}>Empezado: {fechaHora(borrador.iniciadoEn)}</Text>
+            <View className="gap-2 mt-3">
               <Boton titulo="Continuar registro" onPress={continuar} />
               <Boton titulo="Descartar" variante="secundario" onPress={tirar} detalle="Se borra lo ingresado" />
             </View>
           </View>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  fondo: { flex: 1, backgroundColor: 'rgba(11,31,51,0.7)', justifyContent: 'center', padding: Espacio.l },
-  tarjeta: {
-    backgroundColor: Color.papel,
-    borderRadius: Radio.l,
-    borderWidth: Borde,
-    borderColor: Color.noche,
-    overflow: 'hidden',
-  },
-  cuerpo: { padding: Espacio.l, gap: Espacio.s },
-  codigo: { fontSize: 26, color: Color.noche },
-  botones: { gap: Espacio.s, marginTop: Espacio.m },
-});

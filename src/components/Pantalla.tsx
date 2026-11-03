@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Color, Espacio } from '@/constants/theme';
 
 interface Props {
   encabezado?: ReactNode;
@@ -13,29 +11,23 @@ interface Props {
 export function Pantalla({ encabezado, children, pie }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <KeyboardAvoidingView style={styles.raiz} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView className="flex-1 bg-papel" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {encabezado}
       <ScrollView
-        style={styles.raiz}
-        contentContainerStyle={[styles.contenido, !pie && { paddingBottom: insets.bottom + Espacio.xl }]}
+        className="flex-1 bg-papel"
+        contentContainerClassName="p-4 gap-4"
+        // El borde inferior del teléfono cambia en cada modelo: es un valor calculado.
+        contentContainerStyle={pie ? undefined : { paddingBottom: insets.bottom + 24 }}
         keyboardShouldPersistTaps="handled">
         {children}
       </ScrollView>
-      {pie ? <View style={[styles.pie, { paddingBottom: insets.bottom + Espacio.m }]}>{pie}</View> : null}
+      {pie ? (
+        <View
+          className="flex-row gap-3 px-4 pt-3 bg-papel border-t-2 border-linea"
+          style={{ paddingBottom: insets.bottom + 12 }}>
+          {pie}
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  raiz: { flex: 1, backgroundColor: Color.papel },
-  contenido: { padding: Espacio.l, gap: Espacio.l },
-  pie: {
-    flexDirection: 'row',
-    gap: Espacio.m,
-    paddingHorizontal: Espacio.l,
-    paddingTop: Espacio.m,
-    backgroundColor: Color.papel,
-    borderTopWidth: 2,
-    borderTopColor: Color.linea,
-  },
-});

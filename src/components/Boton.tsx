@@ -1,6 +1,13 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+/**
+ * Botones grandes (mín. 56 px): se usan de pie, con apuro y a veces con guantes.
+ *
+ * Animación 4 · Botón con resorte: al tocarlo se hunde un poco (scale 0.96)
+ * y vuelve con withSpring, para que el técnico sienta que el toque llegó.
+ */
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-import { Borde, Color, Espacio, Radio } from '@/constants/theme';
+import { useColor } from '@/animaciones/useColores';
 
 type Variante = 'principal' | 'secundario' | 'peligro' | 'texto';
 
@@ -13,52 +20,46 @@ interface Props {
   detalle?: string;
 }
 
-// Botones grandes (mín. 56 px): se usan de pie, con apuro y a veces con guantes.
+const CAJA: Record<Variante, string> = {
+  principal: 'bg-chaleco border-noche border-b-[5px]',
+  secundario: 'bg-tarjeta border-noche',
+  peligro: 'bg-alerta border-alerta',
+  texto: 'bg-transparent border-transparent min-h-11',
+};
+const TEXTO: Record<Variante, string> = {
+  principal: 'text-noche',
+  secundario: 'text-noche',
+  peligro: 'text-blanco',
+  texto: 'text-agua underline',
+};
+
 export function Boton({ titulo, onPress, variante = 'principal', deshabilitado, cargando, detalle }: Props) {
+  const escala = useSharedValue(1);
+  const colorIndicador = useColor(variante === 'peligro' ? 'blanco' : 'noche');
   const inactivo = deshabilitado || cargando;
+
+  const estilo = useAnimatedStyle(() => ({ transform: [{ scale: escala.value }] }));
+
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={inactivo}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: !!inactivo, busy: !!cargando }}
-      style={({ pressed }) => [
-        styles.base,
-        styles[variante],
-        pressed && !inactivo && styles.presionado,
-        inactivo && styles.inactivo,
-      ]}>
-      <View style={styles.fila}>
-        {cargando ? <ActivityIndicator color={variante === 'principal' ? Color.noche : Color.blanco} /> : null}
-        <Text style={[styles.titulo, styles[`t_${variante}`]]}>{titulo}</Text>
-      </View>
-      {detalle ? <Text style={[styles.detalle, styles[`t_${variante}`]]}>{detalle}</Text> : null}
-    </Pressable>
+    <Animated.View style={estilo} className={inactivo ? 'opacity-45' : ''}>
+      <Pressable
+        onPress={onPress}
+        disabled={inactivo}
+        onPressIn={() => {
+          escala.value = withSpring(0.96, { damping: 15, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          escala.value = withSpring(1, { damping: 12, stiffness: 220 });
+        }}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!inactivo, busy: !!cargando }}
+        className={`min-h-14 rounded-[10px] border-2 px-4 py-2 items-center justify-center ${CAJA[variante]}`}>
+        <View className="flex-row items-center gap-2">
+          {cargando ? <ActivityIndicator color={colorIndicador} /> : null}
+          <Text className={`text-[17px] font-black tracking-wide ${TEXTO[variante]}`}>{titulo}</Text>
+        </View>
+        {detalle ? <Text className={`text-xs font-semibold mt-0.5 ${TEXTO[variante]}`}>{detalle}</Text> : null}
+      </Pressable>
+    </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 56,
-    borderRadius: Radio.m,
-    borderWidth: Borde,
-    borderColor: Color.noche,
-    paddingHorizontal: Espacio.l,
-    paddingVertical: Espacio.s,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  principal: { backgroundColor: Color.chaleco, borderBottomWidth: 5 },
-  secundario: { backgroundColor: Color.tarjeta },
-  peligro: { backgroundColor: Color.alerta, borderColor: Color.alerta },
-  texto: { backgroundColor: 'transparent', borderColor: 'transparent', minHeight: 44 },
-  presionado: { transform: [{ translateY: 2 }] },
-  inactivo: { opacity: 0.45 },
-  fila: { flexDirection: 'row', alignItems: 'center', gap: Espacio.s },
-  titulo: { fontSize: 17, fontWeight: '900', letterSpacing: 0.3 },
-  detalle: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  t_principal: { color: Color.noche },
-  t_secundario: { color: Color.noche },
-  t_peligro: { color: Color.blanco },
-  t_texto: { color: Color.agua, textDecorationLine: 'underline' },
-});

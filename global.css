@@ -1,0 +1,50 @@
+/*
+ * Deber 5 · punto 4: estilos con Uniwind (Tailwind CSS 4 para React Native).
+ * Reemplaza a los StyleSheet y al antiguo src/constants/theme.ts.
+ *
+ * Identidad "libreta de campo + chaleco reflectivo": contraste alto para usar
+ * al sol, amarillo de chaleco para la acción principal y lecturas como el
+ * contador de rodillos del medidor.
+ *
+ * Cada --color-xxx se usa como clase sin el prefijo: bg-noche, text-alerta,
+ * border-chaleco... "static" hace que las variables existan siempre, también
+ * para leerlas desde JavaScript con useCSSVariable (Reanimated las necesita).
+ */
+@import 'tailwindcss';
+@import 'uniwind';
+
+@theme static {
+  /* Base */
+  --color-noche: #0b1f33;
+  --color-agua: #0e5a8a;
+  --color-agua-claro: #d7e8f3;
+  --color-papel: #f3efe6;
+  --color-papel-oscuro: #fbf9f4;
+  --color-tarjeta: #ffffff;
+  --color-linea: #d6cfbf;
+  --color-tenue: #5b6470;
+  --color-niebla: #c9d3de;
+  --color-blanco: #ffffff;
+
+  /* Chaleco reflectivo */
+  --color-chaleco: #f5b700;
+  --color-chaleco-oscuro: #8a6300;
+
+  /* Estados */
+  --color-alerta: #b3261e;
+  --color-alerta-fondo: #fbe3e1;
+  --color-pendiente: #8a4b00;
+  --color-pendiente-fondo: #ffefd2;
+  --color-ok: #1e6b34;
+  --color-ok-fondo: #ddf1e2;
+  --color-ok-vivo: #3ddc84;
+  --color-sin-red: #3a3f47;
+  --color-velo: #0b1f33b3;
+
+  /* Contador del medidor */
+  --color-contador: #111418;
+  --color-contador-borde: #2b3036;
+
+  /* Fuente para códigos y lecturas */
+  --font-mono: monospace;
+}

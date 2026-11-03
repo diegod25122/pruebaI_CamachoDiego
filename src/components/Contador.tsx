@@ -1,56 +1,73 @@
-import { StyleSheet, Text, View } from 'react-native';
+/**
+ * Muestra una lectura como el contador de rodillos del medidor de agua.
+ *
+ * Animación 3 · Rodillos que giran: cada dígito entra desde arriba con un
+ * resorte (withSpring), uno tras otro (withDelay), como los rodillos reales
+ * del medidor al girar. Si el valor cambia, solo ruedan los dígitos nuevos.
+ */
+import { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
-import { Color, Fuente } from '@/constants/theme';
+type Tamano = 'grande' | 'mediano' | 'pequeno';
 
 interface Props {
   valor: number | null;
   digitos?: number;
-  tamano?: 'grande' | 'mediano' | 'pequeno';
+  tamano?: Tamano;
   alerta?: boolean;
 }
 
-const MEDIDAS = {
-  grande: { ancho: 34, alto: 48, fuente: 30 },
-  mediano: { ancho: 24, alto: 34, fuente: 21 },
-  pequeno: { ancho: 17, alto: 24, fuente: 15 },
+const CAJA: Record<Tamano, string> = {
+  grande: 'w-[34px] h-12',
+  mediano: 'w-6 h-[34px]',
+  pequeno: 'w-[17px] h-6',
 };
+const TEXTO: Record<Tamano, string> = {
+  grande: 'text-[30px]',
+  mediano: 'text-[21px]',
+  pequeno: 'text-[15px]',
+};
+const UNIDAD: Record<Tamano, string> = {
+  grande: 'text-base',
+  mediano: 'text-xs',
+  pequeno: 'text-[9px]',
+};
+const ALTO: Record<Tamano, number> = { grande: 48, mediano: 34, pequeno: 24 };
 
-// Muestra una lectura como el contador de rodillos del medidor de agua.
-export function Contador({ valor, digitos = 6, tamano = 'mediano', alerta }: Props) {
-  const m = MEDIDAS[tamano];
-  const texto = valor === null ? '–'.repeat(digitos) : String(valor).padStart(digitos, '0');
+function Rodillo({ digito, orden, tamano, alerta }: { digito: string; orden: number; tamano: Tamano; alerta?: boolean }) {
+  const y = useSharedValue(-ALTO[tamano]);
+
+  useEffect(() => {
+    y.value = -ALTO[tamano];
+    y.value = withDelay(orden * 55, withSpring(0, { damping: 14, stiffness: 160 }));
+  }, [digito, orden, tamano, y]);
+
+  const estilo = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
+
   return (
     <View
-      style={styles.fila}
-      accessible
-      accessibilityLabel={valor === null ? 'Sin lectura' : `${valor} metros cúbicos`}>
-      {texto.split('').map((d, i) => (
-        <View
-          key={i}
-          style={[
-            styles.rodillo,
-            { width: m.ancho, height: m.alto },
-            alerta && styles.rodilloAlerta,
-          ]}>
-          <Text style={[styles.digito, { fontSize: m.fuente }]}>{d}</Text>
-        </View>
-      ))}
-      <Text style={[styles.unidad, { fontSize: m.fuente * 0.55 }]}>m³</Text>
+      className={`${CAJA[tamano]} overflow-hidden items-center justify-center rounded border ${
+        alerta ? 'bg-alerta border-alerta' : 'bg-contador border-contador-borde'
+      }`}>
+      <Animated.Text className={`${TEXTO[tamano]} font-mono font-bold text-blanco`} style={estilo}>
+        {digito}
+      </Animated.Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  fila: { flexDirection: 'row', alignItems: 'flex-end', gap: 3 },
-  rodillo: {
-    backgroundColor: Color.contador,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: Color.contadorBorde,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rodilloAlerta: { backgroundColor: Color.alerta, borderColor: Color.alerta },
-  digito: { color: Color.blanco, fontFamily: Fuente.numeros, fontWeight: '700' },
-  unidad: { marginLeft: 4, color: Color.tenue, fontWeight: '800' },
-});
+export function Contador({ valor, digitos = 6, tamano = 'mediano', alerta }: Props) {
+  const texto = valor === null ? '–'.repeat(digitos) : String(valor).padStart(digitos, '0');
+  return (
+    <View
+      className="flex-row items-end gap-[3px]"
+      accessible
+      accessibilityLabel={valor === null ? 'Sin lectura' : `${valor} metros cúbicos`}>
+      {texto.split('').map((d, i) => (
+        <Rodillo key={i} digito={d} orden={i} tamano={tamano} alerta={alerta} />
+      ))}
+      <Text className={`ml-1 font-extrabold text-tenue ${UNIDAD[tamano]}`}>m³</Text>
+    </View>
+  );
+}

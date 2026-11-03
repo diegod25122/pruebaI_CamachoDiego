@@ -1,7 +1,7 @@
 # ADR-009: Guardar la sesión del técnico con expo-secure-store, sin guardar la clave
 
 ## Estado
-Aceptado.
+Reemplazado por ADR-010 (Deber 5: la sesión ahora la maneja Firebase Authentication).
 
 ## Fecha
 2026-10-28

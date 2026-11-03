@@ -1,29 +1,37 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { Color, Espacio, Texto } from '@/constants/theme';
+import { tx } from '@/constants/clases';
 
 const NOMBRES = ['Estado y lectura', 'Consumo y foto', 'Revisar y guardar'];
 
-// R8: el técnico sabe en qué parte del registro va.
-export function Pasos({ actual }: { actual: 1 | 2 | 3 }) {
+function Barra({ hecha }: { hecha: boolean }) {
+  const lleno = useSharedValue(hecha ? 100 : 0);
+  useEffect(() => {
+    lleno.value = withTiming(hecha ? 100 : 0, { duration: 450 });
+  }, [hecha, lleno]);
+  const estilo = useAnimatedStyle(() => ({ width: `${lleno.value}%` }));
   return (
-    <View style={styles.contenedor} accessibilityLabel={`Paso ${actual} de 3: ${NOMBRES[actual - 1]}`}>
-      <View style={styles.barras}>
-        {NOMBRES.map((_, i) => (
-          <View key={i} style={[styles.barra, i < actual && styles.barraHecha]} />
-        ))}
-      </View>
-      <Text style={Texto.etiqueta}>
-        Paso {actual} de 3 · <Text style={styles.nombre}>{NOMBRES[actual - 1]}</Text>
-      </Text>
+    <View className="flex-1 h-2 rounded bg-linea overflow-hidden">
+      <Animated.View className="h-full bg-noche" style={estilo} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  contenedor: { gap: Espacio.s },
-  barras: { flexDirection: 'row', gap: 6 },
-  barra: { flex: 1, height: 8, borderRadius: 4, backgroundColor: Color.linea },
-  barraHecha: { backgroundColor: Color.noche },
-  nombre: { color: Color.noche },
-});
+// R8: el técnico sabe en qué parte del registro va. La barra del paso actual
+// se llena con una animación corta al llegar a cada pantalla.
+export function Pasos({ actual }: { actual: 1 | 2 | 3 }) {
+  return (
+    <View className="gap-2" accessibilityLabel={`Paso ${actual} de 3: ${NOMBRES[actual - 1]}`}>
+      <View className="flex-row gap-1.5">
+        {NOMBRES.map((_, i) => (
+          <Barra key={i} hecha={i < actual} />
+        ))}
+      </View>
+      <Text className={tx.etiqueta}>
+        Paso {actual} de 3 · <Text className="text-noche">{NOMBRES[actual - 1]}</Text>
+      </Text>
+    </View>
+  );
+}

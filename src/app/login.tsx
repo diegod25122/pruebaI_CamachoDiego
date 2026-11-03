@@ -1,91 +1,103 @@
+/**
+ * Inicio de sesión con Firebase (lógica del taller).
+ * Reto 2: si el ingreso falla, la hoja se sacude (useSacudida).
+ */
+import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { useSacudida } from '@/animaciones/useSacudida';
+import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
 import { Campo } from '@/components/Campo';
-import { Cinta } from '@/components/Cinta';
-import { Contador } from '@/components/Contador';
-import { Ficha } from '@/components/Ficha';
-import { Pantalla } from '@/components/Pantalla';
-import { Color, Espacio, Texto } from '@/constants/theme';
+import { PantallaCuenta } from '@/components/PantallaCuenta';
+import { tx } from '@/constants/clases';
+import { mensajeDeError } from '@/lib/errores-firebase';
+import { validarCorreo } from '@/lib/validaciones';
 import { useSesion } from '@/state/sesion';
 
-// R1: el técnico se identifica con su código de empleado y su clave.
-export default function LoginScreen() {
+export default function PantallaLogin() {
   const { iniciarSesion } = useSesion();
-  const [codigo, setCodigo] = useState('');
+  const { estilo, sacudir } = useSacudida();
+  const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [cargando, setCargando] = useState(false);
+  const [errores, setErrores] = useState<{ correo?: string | null; clave?: string | null }>({});
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-  const ingresar = async () => {
-    if (!codigo.trim() || !clave) {
-      setError('Escribe tu código de empleado y tu clave.');
+  async function manejarIngreso() {
+    // 1. Validamos en el teléfono antes de llamar a Firebase.
+    const nuevosErrores = { correo: validarCorreo(correo), clave: clave ? null : 'Escribe tu contraseña.' };
+    setErrores(nuevosErrores);
+    setErrorGeneral(null);
+    if (nuevosErrores.correo || nuevosErrores.clave) {
+      sacudir();
       return;
     }
-    setCargando(true);
-    const ok = await iniciarSesion(codigo, clave);
-    setCargando(false);
-    if (!ok) setError('Código de empleado o clave incorrectos.');
-    // Si es correcto, el layout cambia solo a la pantalla de inicio.
-  };
+    // 2. Llamamos a Firebase. Si funciona, el layout cambia de pantalla solo.
+    setEnviando(true);
+    try {
+      await iniciarSesion(correo, clave);
+    } catch (error) {
+      setErrorGeneral(mensajeDeError(error));
+      sacudir();
+      // Sin finally: si el ingreso funciona, esta pantalla se desmonta.
+      setEnviando(false);
+    }
+  }
 
   return (
-    <Pantalla
-      encabezado={
-        <View>
-          <View style={styles.marca}>
-            <Text style={styles.antetitulo}>Agua potable · Quito</Text>
-            <Text style={styles.titulo}>Ruta de{'\n'}Lecturas</Text>
-            <Contador valor={2026} digitos={6} tamano="pequeno" />
-          </View>
-          <Cinta alto={12} />
+    <PantallaCuenta
+      titulo={'Ruta de\nLecturas'}
+      bajada="Ingresa con el correo y la contraseña de tu cuenta."
+      estiloHoja={estilo}
+      pie={
+        <View className="flex-row justify-center items-center gap-1.5">
+          <Text className="text-tenue text-[15px]">¿Aún no tienes cuenta?</Text>
+          <Boton variante="texto" titulo="Crea una" onPress={() => router.push('/crear-cuenta')} />
         </View>
       }>
-      <Ficha acento={Color.chaleco}>
-        <View style={styles.formulario}>
-          <Text style={Texto.subtitulo}>Iniciar jornada</Text>
-          <Campo
-            etiqueta="Código de empleado"
-            value={codigo}
-            onChangeText={(t) => {
-              setCodigo(t);
-              setError(null);
-            }}
-            placeholder="EMP-0000"
-            autoCapitalize="characters"
-            autoCorrect={false}
-            returnKeyType="next"
-          />
-          <Campo
-            etiqueta="Clave"
-            value={clave}
-            onChangeText={(t) => {
-              setClave(t);
-              setError(null);
-            }}
-            placeholder="••••••"
-            secureTextEntry
-            autoCapitalize="none"
-            returnKeyType="go"
-            onSubmitEditing={ingresar}
-            error={error ?? undefined}
-          />
-          <Boton titulo="Ingresar" onPress={ingresar} cargando={cargando} />
-          <Text style={Texto.pequeno}>Tu sesión queda abierta hasta que la cierres.</Text>
-        </View>
-      </Ficha>
-
-    </Pantalla>
+      <Text className={tx.subtitulo}>Iniciar jornada</Text>
+      {errorGeneral ? <Aviso tipo="alerta" titulo="No se pudo ingresar">{errorGeneral}</Aviso> : null}
+      <Campo
+        etiqueta="Correo"
+        placeholder="nombre.apellido@epn.edu.ec"
+        value={correo}
+        onChangeText={(t) => {
+          setCorreo(t);
+          setErrores((e) => ({ ...e, correo: null }));
+        }}
+        error={errores.correo}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="emailAddress"
+        autoComplete="email"
+        returnKeyType="next"
+      />
+      <Campo
+        etiqueta="Contraseña"
+        value={clave}
+        onChangeText={(t) => {
+          setClave(t);
+          setErrores((e) => ({ ...e, clave: null }));
+        }}
+        error={errores.clave}
+        esClave
+        textContentType="password"
+        autoComplete="current-password"
+        returnKeyType="go"
+        onSubmitEditing={manejarIngreso}
+      />
+      <View className="items-end">
+        <Boton
+          variante="texto"
+          titulo="¿Olvidaste tu contraseña?"
+          // Pasamos el correo escrito para no obligar a escribirlo otra vez.
+          onPress={() => router.push({ pathname: '/recuperar', params: { correo } })}
+        />
+      </View>
+      <Boton titulo="Iniciar sesión" onPress={manejarIngreso} cargando={enviando} />
+    </PantallaCuenta>
   );
 }
-
-const styles = StyleSheet.create({
-  marca: { backgroundColor: Color.noche, paddingHorizontal: Espacio.l, paddingTop: Espacio.xl, paddingBottom: Espacio.l, gap: Espacio.s },
-  antetitulo: { ...Texto.etiqueta, color: Color.chaleco },
-  titulo: { fontSize: 44, lineHeight: 46, fontWeight: '900', color: Color.blanco, letterSpacing: -1 },
-  lema: { color: '#C9D3DE', fontSize: 15, fontWeight: '600' },
-  formulario: { gap: Espacio.l },
-  prueba: { gap: 4, padding: Espacio.m, borderWidth: 2, borderStyle: 'dashed', borderColor: Color.linea, borderRadius: 10 },
-  credencial: { fontSize: 15, color: Color.noche },
-});
