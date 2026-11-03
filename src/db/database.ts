@@ -3,8 +3,6 @@
 
 import * as SQLite from 'expo-sqlite';
 
-export const db = SQLite.openDatabaseSync('ruta-lecturas.db');
-
 
 const ESQUEMA = `
 PRAGMA journal_mode = WAL;
@@ -44,10 +42,23 @@ CREATE TABLE IF NOT EXISTS borrador (
 );
 `;
 
-let migracion: Promise<void> | null = null;
+let base: Promise<SQLite.SQLiteDatabase> | null = null;
 
-// Todas las funciones de acceso esperan a que el esquema exista.
-export function baseLista(): Promise<void> {
-  if (!migracion) migracion = db.execAsync(ESQUEMA);
-  return migracion;
+// Abre la base (una sola vez) y crea el esquema. Todas las funciones de acceso
+// la esperan. Se abre de forma asíncrona porque en web openDatabaseSync bloquea
+// el navegador mientras carga el worker de SQLite y falla con
+// "Sync operation timeout".
+export function baseLista(): Promise<SQLite.SQLiteDatabase> {
+  if (!base) {
+    base = (async () => {
+      const db = await SQLite.openDatabaseAsync('ruta-lecturas.db');
+      await db.execAsync(ESQUEMA);
+      return db;
+    })();
+    // Si falla, se permite reintentar en la siguiente llamada.
+    base.catch(() => {
+      base = null;
+    });
+  }
+  return base;
 }

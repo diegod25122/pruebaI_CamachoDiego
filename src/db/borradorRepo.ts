@@ -1,6 +1,6 @@
 // R8: el registro a medias se guarda en SQLite en cada cambio.
 
-import { baseLista, db } from '@/db/database';
+import { baseLista } from '@/db/database';
 import type { Medidor, Referencia } from '@/domain/medidor';
 import type { DatosCaptura } from '@/domain/reglas';
 
@@ -21,7 +21,7 @@ export interface Borrador {
 }
 
 export async function leerBorrador(): Promise<Borrador | null> {
-  await baseLista();
+  const db = await baseLista();
   const fila = await db.getFirstAsync<{ datos: string }>('SELECT datos FROM borrador WHERE id = 1');
   if (!fila) return null;
   try {
@@ -33,7 +33,7 @@ export async function leerBorrador(): Promise<Borrador | null> {
 }
 
 export async function guardarBorrador(b: Borrador): Promise<void> {
-  await baseLista();
+  const db = await baseLista();
   await db.runAsync(
     `INSERT INTO borrador (id, datos, actualizado_en) VALUES (1, ?, ?)
      ON CONFLICT(id) DO UPDATE SET datos = excluded.datos, actualizado_en = excluded.actualizado_en`,
@@ -42,6 +42,6 @@ export async function guardarBorrador(b: Borrador): Promise<void> {
 }
 
 export async function borrarBorrador(): Promise<void> {
-  await baseLista();
+  const db = await baseLista();
   await db.runAsync('DELETE FROM borrador WHERE id = 1', []);
 }

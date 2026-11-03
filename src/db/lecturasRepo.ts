@@ -1,4 +1,4 @@
-import { baseLista, db } from '@/db/database';
+import { baseLista } from '@/db/database';
 import type { EstadoEnvio, EstadoMedidor, LecturaLocal, Verificacion } from '@/domain/lectura';
 
 interface Fila {
@@ -68,19 +68,19 @@ export class ErrorNoEditable extends Error {
 }
 
 export async function listarLecturas(): Promise<LecturaLocal[]> {
-  await baseLista();
+  const db = await baseLista();
   const filas = await db.getAllAsync<Fila>('SELECT * FROM lecturas ORDER BY registrada_en DESC');
   return filas.map(desdeFila);
 }
 
 export async function obtenerLectura(id: string): Promise<LecturaLocal | null> {
-  await baseLista();
+  const db = await baseLista();
   const fila = await db.getFirstAsync<Fila>('SELECT * FROM lecturas WHERE id = ?', [id]);
   return fila ? desdeFila(fila) : null;
 }
 
 export async function lecturaDelPeriodo(medidorCodigo: string, periodo: string): Promise<LecturaLocal | null> {
-  await baseLista();
+  const db = await baseLista();
   const fila = await db.getFirstAsync<Fila>(
     'SELECT * FROM lecturas WHERE medidor_codigo = ? AND periodo = ?',
     [medidorCodigo, periodo],
@@ -91,7 +91,7 @@ export async function lecturaDelPeriodo(medidorCodigo: string, periodo: string):
 // Las que el sincronizador debe intentar enviar. "enviando" se incluye porque
 // significa que la app se cerró a mitad de un envío.
 export async function lecturasPorEnviar(): Promise<LecturaLocal[]> {
-  await baseLista();
+  const db = await baseLista();
   const filas = await db.getAllAsync<Fila>(
     "SELECT * FROM lecturas WHERE envio IN ('pendiente', 'enviando') ORDER BY registrada_en ASC",
   );
@@ -99,7 +99,7 @@ export async function lecturasPorEnviar(): Promise<LecturaLocal[]> {
 }
 
 export async function insertarLectura(l: LecturaLocal): Promise<void> {
-  await baseLista();
+  const db = await baseLista();
   const existente = await lecturaDelPeriodo(l.medidorCodigo, l.periodo);
   if (existente) throw new ErrorLecturaDuplicada(existente);
   await db.runAsync(
@@ -121,7 +121,7 @@ export async function insertarLectura(l: LecturaLocal): Promise<void> {
 // R10: el WHERE garantiza que una lectura enviada (o en envío) no cambia,
 // aunque la pantalla estuviera desactualizada.
 export async function corregirLectura(l: LecturaLocal): Promise<void> {
-  await baseLista();
+  const db = await baseLista();
   const resultado = await db.runAsync(
     `UPDATE lecturas SET
       estado_medidor = ?, lectura = ?, motivo = ?, descripcion_danio = ?, lectura_anterior = ?,
@@ -152,7 +152,7 @@ export interface CambioEnvio {
 }
 
 export async function actualizarEnvio(id: string, c: CambioEnvio): Promise<void> {
-  await baseLista();
+  const db = await baseLista();
   const sets: string[] = ['envio = ?'];
   const valores: (string | number | null)[] = [c.envio];
   const poner = (columna: string, valor: string | number | null | undefined) => {
