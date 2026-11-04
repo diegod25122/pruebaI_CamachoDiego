@@ -36,6 +36,8 @@ type ValorSesion = {
   verificado: boolean;
   /** true mientras Firebase revisa si hay una sesión guardada. */
   cargando: boolean;
+  /** Error al enviar el correo de verificación tras crear la cuenta (o null). */
+  errorVerificacion: unknown;
   iniciarSesion: (correo: string, clave: string) => Promise<void>;
   registrarse: (nombre: string, correo: string, clave: string) => Promise<void>;
   enviarCorreoRecuperacion: (correo: string) => Promise<void>;
@@ -61,6 +63,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   const [nombre, setNombre] = useState<string | null>(null);
   const [verificado, setVerificado] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const [errorVerificacion, setErrorVerificacion] = useState<unknown>(null);
 
   useEffect(() => {
     // onAuthStateChanged se dispara al arrancar (con la sesión guardada o null)
@@ -84,12 +87,22 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   async function registrarse(nombreCompleto: string, correo: string, clave: string) {
     // Crear la cuenta también inicia la sesión.
     const credencial = await createUserWithEmailAndPassword(auth, correo.trim(), clave);
-    const nombreLimpio = nombreCompleto.trim();
-    await updateProfile(credencial.user, { displayName: nombreLimpio });
-    setNombre(nombreLimpio);
-    // Reto 1: enviamos el correo de verificación. Hasta que el técnico abra
-    // el enlace, `verificado` es false y solo ve la pantalla de verificación.
-    await sendEmailVerification(credencial.user);
+    // Ojo: en este punto onAuthStateChanged ya cambió el layout a
+    // "verificar-correo" y la pantalla de crear cuenta se desmonta. Si algo de
+    // aquí abajo lanzara un error, su catch no se vería nunca. Por eso lo
+    // capturamos y lo guardamos en el contexto para mostrarlo en la otra pantalla.
+    setErrorVerificacion(null);
+    try {
+      const nombreLimpio = nombreCompleto.trim();
+      await updateProfile(credencial.user, { displayName: nombreLimpio });
+      setNombre(nombreLimpio);
+      // Reto 1: enviamos el correo de verificación. Hasta que el técnico abra
+      // el enlace, `verificado` es false y solo ve la pantalla de verificación.
+      await sendEmailVerification(credencial.user);
+    } catch (error) {
+      console.error('No se pudo enviar el correo de verificación:', error);
+      setErrorVerificacion(error);
+    }
   }
 
   async function enviarCorreoRecuperacion(correo: string) {
@@ -144,6 +157,7 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
         nombre,
         verificado,
         cargando,
+        errorVerificacion,
         iniciarSesion,
         registrarse,
         enviarCorreoRecuperacion,

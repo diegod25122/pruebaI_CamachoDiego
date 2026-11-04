@@ -23,10 +23,20 @@ import { useSesion } from '@/state/sesion';
 const ESPERA_REENVIO = 60; // segundos, para no disparar auth/too-many-requests
 
 export default function PantallaVerificarCorreo() {
-  const { usuario, comprobarVerificacion, reenviarVerificacion, cerrarSesion } = useSesion();
+  const { usuario, errorVerificacion, comprobarVerificacion, reenviarVerificacion, cerrarSesion } = useSesion();
   const [comprobando, setComprobando] = useState(false);
-  const [aviso, setAviso] = useState<{ tipo: 'ok' | 'alerta' | 'pendiente'; texto: string } | null>(null);
-  const [espera, setEspera] = useState(ESPERA_REENVIO);
+  // Si el primer envío falló, lo mostramos y dejamos reenviar de inmediato.
+  const [aviso, setAviso] = useState<{ tipo: 'ok' | 'alerta' | 'pendiente'; texto: string } | null>(
+    errorVerificacion ? { tipo: 'alerta', texto: mensajeDeError(errorVerificacion) } : null,
+  );
+  const [espera, setEspera] = useState(errorVerificacion ? 0 : ESPERA_REENVIO);
+
+  useEffect(() => {
+    if (errorVerificacion) {
+      setAviso({ tipo: 'alerta', texto: mensajeDeError(errorVerificacion) });
+      setEspera(0);
+    }
+  }, [errorVerificacion]);
 
   // Cuenta regresiva para habilitar "Reenviar correo".
   useEffect(() => {
