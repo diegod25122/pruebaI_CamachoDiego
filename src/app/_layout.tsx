@@ -16,6 +16,7 @@ import { View } from 'react-native';
 
 import { useColor } from '@/animaciones/useColores';
 import { BarraConexion } from '@/components/BarraConexion';
+import { BienvenidaIngreso } from '@/components/BienvenidaIngreso';
 import { ModalBorrador } from '@/components/ModalBorrador';
 import { persistOptions, queryClient } from '@/query/queryClient';
 import { BorradorProvider } from '@/state/borrador';
@@ -73,6 +74,8 @@ export default function RootLayout() {
               <BarraConexion />
               <Navegacion />
               <ModalBorrador />
+              {/* Taller 7: animación de éxito al iniciar sesión. */}
+              <BienvenidaIngreso />
             </View>
           </BorradorProvider>
         </SyncProvider>

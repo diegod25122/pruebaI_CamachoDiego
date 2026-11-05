@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { useSacudida } from '@/animaciones/useSacudida';
+import { Animacion } from '@/components/Animacion';
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
 import { Campo } from '@/components/Campo';
@@ -24,6 +25,10 @@ export default function PantallaLogin() {
   const [errores, setErrores] = useState<{ correo?: string | null; clave?: string | null }>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // Taller 7: cuenta los intentos fallidos. Se usa como `key` de la animación
+  // de error para que vuelva a reproducirse en cada intento.
+  const [fallos, setFallos] = useState(0);
+  const hayError = !!(errorGeneral || errores.correo || errores.clave);
 
   async function manejarIngreso() {
     // 1. Validamos en el teléfono antes de llamar a Firebase.
@@ -31,6 +36,7 @@ export default function PantallaLogin() {
     setErrores(nuevosErrores);
     setErrorGeneral(null);
     if (nuevosErrores.correo || nuevosErrores.clave) {
+      setFallos((n) => n + 1);
       sacudir();
       return;
     }
@@ -40,6 +46,7 @@ export default function PantallaLogin() {
       await iniciarSesion(correo, clave);
     } catch (error) {
       setErrorGeneral(mensajeDeError(error));
+      setFallos((n) => n + 1);
       sacudir();
       // Sin finally: si el ingreso funciona, esta pantalla se desmonta.
       setEnviando(false);
@@ -58,6 +65,8 @@ export default function PantallaLogin() {
         </View>
       }>
       <Text className={tx.subtitulo}>Iniciar jornada</Text>
+      {/* Taller 7 · Lottie: los datos de ingreso están mal. */}
+      {fallos > 0 && hayError ? <Animacion key={fallos} tipo="error" tamano={90} /> : null}
       {errorGeneral ? <Aviso tipo="alerta" titulo="No se pudo ingresar">{errorGeneral}</Aviso> : null}
       <Campo
         etiqueta="Correo"
