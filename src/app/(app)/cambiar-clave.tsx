@@ -80,6 +80,7 @@ export default function PantallaCambiarClave() {
           {errorGeneral ? <Aviso tipo="alerta" titulo="No se pudo cambiar">{errorGeneral}</Aviso> : null}
           <Campo
             etiqueta="Contraseña actual"
+            placeholder="••••••••"
             value={actual}
             onChangeText={setActual}
             error={errores.actual}
@@ -102,6 +103,7 @@ export default function PantallaCambiarClave() {
           </View>
           <Campo
             etiqueta="Repite la contraseña nueva"
+            placeholder="Escríbela otra vez"
             value={confirmacion}
             onChangeText={setConfirmacion}
             error={errores.confirmacion}

@@ -1,14 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, Alert, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
 import { ErrorConfiguracion } from '@/api/oficina';
+import { Animacion } from '@/components/Animacion';
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
 import { Encabezado } from '@/components/Encabezado';
 import { FichaMedidor } from '@/components/FichaMedidor';
 import { Pantalla } from '@/components/Pantalla';
-import { useColor } from '@/animaciones/useColores';
+import { UbicacionLectura } from '@/components/UbicacionLectura';
 import { tx } from '@/constants/clases';
 import { periodoDe } from '@/domain/lectura';
 import { referenciaDe, validarCodigoMedidor, type Medidor } from '@/domain/medidor';
@@ -30,7 +31,6 @@ export default function MedidorScreen() {
   const oficinaQ = useLecturasOficina(codigo, periodo);
   const { data: locales } = useLecturasLocales();
   const { borrador, iniciarNueva, descartar } = useBorrador();
-  const colorNoche = useColor('noche');
 
   if (!validacion.ok) {
     return (
@@ -77,6 +77,8 @@ export default function MedidorScreen() {
           <Aviso tipo="alerta" titulo={`Ya registrado en ${nombrePeriodo(periodo)}`}>
             No se puede registrar dos veces el mismo medidor en el mismo mes.
           </Aviso>
+          {/* Taller 7: dónde se hizo la lectura de este medidor. */}
+          <UbicacionLectura ubicacion={local.ubicacion} />
           <Boton
             titulo="Ver la lectura registrada"
             variante="secundario"
@@ -147,10 +149,10 @@ export default function MedidorScreen() {
       </View>
     );
   } else {
+    // Taller 7 · Lottie 1: carga de los datos del medidor.
     contenido = (
-      <View className="items-center gap-3 py-8">
-        <ActivityIndicator size="large" color={colorNoche} />
-        <Text className={tx.cuerpo}>Consultando a la oficina…</Text>
+      <View className="py-8">
+        <Animacion tipo="cargando" tamano={140} texto="Consultando a la oficina…" />
       </View>
     );
   }

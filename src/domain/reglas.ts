@@ -4,6 +4,7 @@
 import { FACTOR_ANOMALIA } from '@/config';
 import type { EstadoMedidor, LecturaLocal } from '@/domain/lectura';
 import type { Referencia } from '@/domain/medidor';
+import { ubicacionValida, type Ubicacion } from '@/domain/ubicacion';
 
 export const LECTURA_MAXIMA = 99_999_999;
 const MINIMO_TEXTO = 3;
@@ -16,6 +17,9 @@ export interface DatosCaptura {
   descripcionDanio: string;
   anomaliaConfirmada: boolean;
   fotoNombre: string | null;
+  // Taller 7: obligatoria. Es opcional en el tipo porque los borradores
+  // guardados antes de esta versión no la tienen.
+  ubicacion?: Ubicacion | null;
 }
 
 export const CAPTURA_VACIA: DatosCaptura = {
@@ -25,9 +29,10 @@ export const CAPTURA_VACIA: DatosCaptura = {
   descripcionDanio: '',
   anomaliaConfirmada: false,
   fotoNombre: null,
+  ubicacion: null,
 };
 
-export type CampoCaptura = 'estado' | 'lectura' | 'motivo' | 'descripcion' | 'confirmacion' | 'foto';
+export type CampoCaptura = 'estado' | 'lectura' | 'motivo' | 'descripcion' | 'confirmacion' | 'foto' | 'ubicacion';
 export type Errores = Partial<Record<CampoCaptura, string>>;
 
 export interface Evaluacion {
@@ -111,12 +116,18 @@ export function evaluarCaptura(datos: DatosCaptura, referencia: Referencia | nul
       : 'El medidor está dañado: la foto es obligatoria.';
   }
 
+  // Taller 7: el técnico debe registrar dónde hizo la lectura.
+  if (!ubicacionValida(datos.ubicacion)) {
+    errores.ubicacion = 'Registra la ubicación de la lectura (GPS o marcador en el mapa).';
+  }
+
   return { lectura, consumo, anomalo, veces, fotoObligatoria, errores };
 }
 
 // Qué campos se revisan en cada pantalla del registro (R8).
 export const CAMPOS_PASO_1: CampoCaptura[] = ['estado', 'lectura', 'motivo', 'descripcion'];
 export const CAMPOS_PASO_2: CampoCaptura[] = ['confirmacion', 'foto'];
+export const CAMPOS_PASO_3: CampoCaptura[] = ['ubicacion'];
 
 export function erroresDe(errores: Errores, campos: CampoCaptura[]): Errores {
   const filtrados: Errores = {};
@@ -139,6 +150,7 @@ export function datosDesdeLectura(l: LecturaLocal): DatosCaptura {
     descripcionDanio: l.descripcionDanio ?? '',
     anomaliaConfirmada: l.anomaliaConfirmada,
     fotoNombre: l.fotoNombre,
+    ubicacion: l.ubicacion,
   };
 }
 

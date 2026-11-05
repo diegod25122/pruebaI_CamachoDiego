@@ -30,6 +30,12 @@
       "expo-router",
       "expo-sqlite",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "La ubicación se usa para registrar dónde se tomó la lectura del medidor."
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "cameraPermission": "La cámara se usa para fotografiar el medidor de agua como respaldo de la lectura.",

@@ -76,7 +76,7 @@ export default function PantallaCrearCuenta() {
       {errorGeneral ? <Aviso tipo="alerta" titulo="No se pudo crear la cuenta">{errorGeneral}</Aviso> : null}
       <Campo
         etiqueta="Nombre"
-        placeholder="Como quieres que te saludemos"
+        placeholder="Ej. Juan Pérez"
         value={nombre}
         onChangeText={setNombre}
         error={errores.nombre}
@@ -111,6 +111,7 @@ export default function PantallaCrearCuenta() {
       </View>
       <Campo
         etiqueta="Repite la contraseña"
+        placeholder="Escríbela otra vez"
         value={confirmacion}
         onChangeText={setConfirmacion}
         error={errores.confirmacion}

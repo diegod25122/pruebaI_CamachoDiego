@@ -71,7 +71,7 @@ export default function InicioScreen() {
       {borrador ? (
         <Pressable onPress={() => router.push(RUTA_PASO[borrador.paso])} accessibilityRole="button">
           <Aviso tipo="pendiente" titulo={`Registro sin terminar · ${borrador.medidorCodigo}`}>
-            {`Vas en el paso ${borrador.paso} de 3. Toca para continuar.`}
+            {`Vas en el paso ${borrador.paso} de 4. Toca para continuar.`}
           </Aviso>
         </Pressable>
       ) : null}

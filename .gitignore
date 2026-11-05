@@ -10,3 +10,7 @@ npm-debug.*
 expo-env.d.ts
 android/
 ios/
+
+# Contexto exportado del proyecto (no es parte de la app)
+contexto_proyecto.md
+export_context.js

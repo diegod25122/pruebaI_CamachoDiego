@@ -59,7 +59,7 @@ export function ModalBorrador() {
             <Text className={tx.etiqueta}>{borrador.editando ? 'Corrección sin terminar' : 'Registro sin terminar'}</Text>
             <Text className={`${tx.codigo} text-[26px] text-noche`}>{borrador.medidorCodigo}</Text>
             <Text className={tx.cuerpo}>
-              La app se cerró en el paso {borrador.paso} de 3. {resumen}.
+              La app se cerró en el paso {borrador.paso} de 4. {resumen}.
             </Text>
             <Text className={tx.pequeno}>Empezado: {fechaHora(borrador.iniciadoEn)}</Text>
             <View className="gap-2 mt-3">

@@ -72,6 +72,7 @@ export default function PantallaEditarNombre() {
           {errorGeneral ? <Aviso tipo="alerta" titulo="No se pudo guardar">{errorGeneral}</Aviso> : null}
           <Campo
             etiqueta="Nombre"
+            placeholder="Ej. Juan Pérez"
             value={nombre}
             onChangeText={(t) => {
               setNombre(t);

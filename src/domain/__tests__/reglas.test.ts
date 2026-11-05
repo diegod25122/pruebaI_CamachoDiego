@@ -1,9 +1,11 @@
 import { CAPTURA_VACIA, esConsumoAnomalo, evaluarCaptura, parseLectura, type DatosCaptura } from '@/domain/reglas';
 
 const ref = { lecturaAnterior: 1000, consumoPromedio: 20 };
+const UBICACION = { latitud: -0.2105, longitud: -78.4895, precision: 8, origen: 'gps' as const };
 
 function datos(cambios: Partial<DatosCaptura>): DatosCaptura {
-  return { ...CAPTURA_VACIA, ...cambios };
+  // Con ubicación por defecto (Taller 7) para probar solo la regla de cada caso.
+  return { ...CAPTURA_VACIA, ubicacion: UBICACION, ...cambios };
 }
 
 describe('parseLectura', () => {
@@ -102,5 +104,34 @@ describe('R7: foto opcional en los demás casos', () => {
   it('inaccesible no exige foto', () => {
     const r = evaluarCaptura(datos({ estadoMedidor: 'inaccesible', motivo: 'Caja sellada' }), ref);
     expect(r.fotoObligatoria).toBe(false);
+  });
+});
+
+describe('Taller 7: ubicación obligatoria', () => {
+  it('sin ubicación no se puede guardar', () => {
+    const e = evaluarCaptura(datos({ estadoMedidor: 'normal', lecturaTexto: '1010', ubicacion: null }), ref);
+    expect(e.errores.ubicacion).toBeDefined();
+  });
+
+  it('acepta la ubicación del GPS o la marcada a mano', () => {
+    const gps = evaluarCaptura(datos({ estadoMedidor: 'normal', lecturaTexto: '1010' }), ref);
+    expect(gps.errores.ubicacion).toBeUndefined();
+    const manual = evaluarCaptura(
+      datos({
+        estadoMedidor: 'normal',
+        lecturaTexto: '1010',
+        ubicacion: { latitud: -0.21, longitud: -78.49, precision: null, origen: 'manual' },
+      }),
+      ref,
+    );
+    expect(manual.errores.ubicacion).toBeUndefined();
+  });
+
+  it('rechaza coordenadas fuera de rango', () => {
+    const e = evaluarCaptura(
+      datos({ estadoMedidor: 'normal', lecturaTexto: '1010', ubicacion: { latitud: 200, longitud: 0, precision: null, origen: 'manual' } }),
+      ref,
+    );
+    expect(e.errores.ubicacion).toBeDefined();
   });
 });

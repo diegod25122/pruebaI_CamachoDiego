@@ -92,6 +92,10 @@ export async function crearLectura(l: LecturaLocal): Promise<LecturaRemota> {
     descripcionDanio: l.descripcionDanio,
     tieneFoto: l.fotoNombre !== null,
     fotoNombre: l.fotoNombre,
+    // Taller 7: dónde se hizo la lectura.
+    latitud: l.ubicacion?.latitud ?? null,
+    longitud: l.ubicacion?.longitud ?? null,
+    origenUbicacion: l.ubicacion?.origen ?? null,
     registradaEn: l.registradaEn,
   };
   const creada = await pedirJson<unknown>(url(RECURSO_LECTURAS), {

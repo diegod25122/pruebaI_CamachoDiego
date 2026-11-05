@@ -28,6 +28,8 @@ export async function guardarCaptura(b: Borrador, tecnicoCodigo: string): Promis
     anomalo: ev.anomalo,
     anomaliaConfirmada: ev.anomalo && b.datos.anomaliaConfirmada,
     fotoNombre: b.datos.fotoNombre,
+    // Taller 7: evaluarCaptura ya comprobó que existe y es válida.
+    ubicacion: b.datos.ubicacion ?? null,
     registradaEn: anterior?.registradaEn ?? ahora,
     actualizadaEn: ahora,
     // R4: queda pendiente de verificar hasta compararla con los datos

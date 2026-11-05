@@ -30,6 +30,11 @@ CREATE TABLE IF NOT EXISTS lecturas (
   remote_id            TEXT,
   enviada_en           TEXT,
   intentos             INTEGER NOT NULL DEFAULT 0,
+  -- Taller 7: ubicación donde se hizo la lectura.
+  latitud              REAL,
+  longitud             REAL,
+  precision_gps        REAL,
+  origen_ubicacion     TEXT,
   -- R10: la propia base impide dos lecturas del mismo medidor en el mismo mes.
   UNIQUE (medidor_codigo, periodo)
 );
@@ -42,6 +47,23 @@ CREATE TABLE IF NOT EXISTS borrador (
 );
 `;
 
+// Taller 7: columnas agregadas después de la Prueba I. En un teléfono que ya
+// tenía la base, CREATE TABLE IF NOT EXISTS no las crea: se agregan aquí.
+const COLUMNAS_NUEVAS: [string, string][] = [
+  ['latitud', 'REAL'],
+  ['longitud', 'REAL'],
+  ['precision_gps', 'REAL'],
+  ['origen_ubicacion', 'TEXT'],
+];
+
+async function migrar(db: SQLite.SQLiteDatabase): Promise<void> {
+  const columnas = await db.getAllAsync<{ name: string }>('PRAGMA table_info(lecturas)');
+  const existentes = new Set(columnas.map((c) => c.name));
+  for (const [nombre, tipo] of COLUMNAS_NUEVAS) {
+    if (!existentes.has(nombre)) await db.execAsync(`ALTER TABLE lecturas ADD COLUMN ${nombre} ${tipo}`);
+  }
+}
+
 let base: Promise<SQLite.SQLiteDatabase> | null = null;
 
 // Abre la base (una sola vez) y crea el esquema. Todas las funciones de acceso
@@ -53,6 +75,7 @@ export function baseLista(): Promise<SQLite.SQLiteDatabase> {
     base = (async () => {
       const db = await SQLite.openDatabaseAsync('ruta-lecturas.db');
       await db.execAsync(ESQUEMA);
+      await migrar(db);
       return db;
     })();
     // Si falla, se permite reintentar en la siguiente llamada.

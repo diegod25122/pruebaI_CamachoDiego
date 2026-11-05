@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Alert, Image, Text, View } from 'react-native';
 
+import { Animacion } from '@/components/Animacion';
 import { Aviso } from '@/components/Aviso';
 import { Boton } from '@/components/Boton';
 import { Contador } from '@/components/Contador';
@@ -9,6 +10,7 @@ import { Encabezado } from '@/components/Encabezado';
 import { Ficha } from '@/components/Ficha';
 import { InsigniaEnvio, InsigniaVerificacion } from '@/components/Insignia';
 import { Pantalla } from '@/components/Pantalla';
+import { UbicacionLectura } from '@/components/UbicacionLectura';
 import { useColor } from '@/animaciones/useColores';
 import { tx } from '@/constants/clases';
 import { esEditable, tituloEstado, type LecturaLocal } from '@/domain/lectura';
@@ -115,6 +117,9 @@ export default function LecturaScreen() {
         {l.envio !== 'rechazada' ? <InsigniaVerificacion verificacion={l.verificacion} /> : null}
       </View>
 
+      {/* Taller 7 · Lottie 2: confirmación de la lectura recién guardada. */}
+      {guardada === '1' ? <Animacion tipo="exito" tamano={130} texto="¡Lectura guardada!" /> : null}
+
       <AvisoEstado l={l} recienGuardada={guardada === '1'} />
 
       <Ficha acento={l.anomalo ? 'bg-alerta' : l.envio === 'enviada' ? 'bg-ok' : 'bg-chaleco'} punteada={l.envio !== 'enviada'}>
@@ -143,6 +148,8 @@ export default function LecturaScreen() {
           <Dato etiqueta="Identificador de envío" valor={l.id.slice(0, 8)} />
         </View>
       </Ficha>
+
+      <UbicacionLectura ubicacion={l.ubicacion} />
 
       <View className="gap-3">
         <Text className={tx.subtitulo}>Foto del medidor</Text>

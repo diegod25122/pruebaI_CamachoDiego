@@ -140,5 +140,6 @@ export function useBorrador(): BorradorCtx {
 export const RUTA_PASO = {
   1: '/registro/estado',
   2: '/registro/foto',
-  3: '/registro/resumen',
+  3: '/registro/ubicacion',
+  4: '/registro/resumen',
 } as const;

@@ -1,5 +1,7 @@
 // Modelo de una lectura guardada en el teléfono.
 
+import type { Ubicacion } from '@/domain/ubicacion';
+
 export type EstadoMedidor = 'normal' | 'inaccesible' | 'danado';
 
 // Ciclo de envío (R9, R10):
@@ -31,6 +33,7 @@ export interface LecturaLocal {
   anomalo: boolean;
   anomaliaConfirmada: boolean;
   fotoNombre: string | null;
+  ubicacion: Ubicacion | null; // Taller 7: dónde se hizo la lectura
   registradaEn: string;
   actualizadaEn: string;
   verificacion: Verificacion;

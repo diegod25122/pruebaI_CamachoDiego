@@ -12,7 +12,8 @@ import { Pantalla } from '@/components/Pantalla';
 import { tx } from '@/constants/clases';
 import { ErrorLecturaDuplicada, ErrorNoEditable } from '@/db/lecturasRepo';
 import { tituloEstado } from '@/domain/lectura';
-import { CAMPOS_PASO_1, erroresDe, hayErrores } from '@/domain/reglas';
+import { CAMPOS_PASO_1, CAMPOS_PASO_2, erroresDe, hayErrores } from '@/domain/reglas';
+import { textoCoordenadas, textoOrigen, ubicacionValida } from '@/domain/ubicacion';
 import { refrescarLocales } from '@/query/hooks';
 import { guardarCaptura } from '@/services/registro';
 import { uriDeFoto } from '@/services/fotos';
@@ -36,7 +37,7 @@ export default function PasoResumen() {
   const client = useQueryClient();
   const { usuario } = useSesion();
   const { conexion, sincronizarAhora } = useSync();
-  const { borrador, cargado, evaluacion, irA, salir, terminar } = useRegistro(3);
+  const { borrador, cargado, evaluacion, irA, salir, terminar } = useRegistro(4);
   const [guardando, setGuardando] = useState(false);
 
   if (!cargado) return null;
@@ -45,6 +46,8 @@ export default function PasoResumen() {
   const { datos } = borrador;
   const fotoUri = datos.fotoNombre ? uriDeFoto(datos.fotoNombre) : null;
   const pendientesDePaso1 = hayErrores(erroresDe(evaluacion.errores, CAMPOS_PASO_1));
+  const pendientesDePaso2 = hayErrores(erroresDe(evaluacion.errores, CAMPOS_PASO_2));
+  const ubicacion = ubicacionValida(datos.ubicacion) ? datos.ubicacion : null;
   const valido = !hayErrores(evaluacion.errores);
 
   const guardar = async () => {
@@ -75,11 +78,11 @@ export default function PasoResumen() {
 
   return (
     <Pantalla
-      encabezado={<CabeceraRegistro borrador={borrador} paso={3} onSalir={salir} />}
+      encabezado={<CabeceraRegistro borrador={borrador} paso={4} onSalir={salir} />}
       pie={
         <>
           <View className="flex-1">
-            <Boton titulo="Anterior" variante="secundario" onPress={() => irA(2)} />
+            <Boton titulo="Anterior" variante="secundario" onPress={() => irA(3)} />
           </View>
           <View className="flex-1">
             <Boton
@@ -98,9 +101,15 @@ export default function PasoResumen() {
       ) : null}
       {!valido ? (
         <Boton
-          titulo={pendientesDePaso1 ? 'Ir al paso 1' : 'Ir al paso 2'}
+          titulo={pendientesDePaso1 ? 'Ir al paso 1' : pendientesDePaso2 ? 'Ir al paso 2' : 'Ir al paso 3'}
           variante="secundario"
-          onPress={() => (pendientesDePaso1 ? router.dismissTo('/registro/estado') : irA(2))}
+          onPress={() =>
+            pendientesDePaso1
+              ? router.dismissTo('/registro/estado')
+              : pendientesDePaso2
+                ? router.dismissTo('/registro/foto')
+                : irA(3)
+          }
         />
       ) : null}
 
@@ -123,6 +132,10 @@ export default function PasoResumen() {
           ) : null}
           {datos.estadoMedidor === 'inaccesible' ? <Linea etiqueta="Motivo" valor={datos.motivo} /> : null}
           {datos.estadoMedidor === 'danado' ? <Linea etiqueta="Daño" valor={datos.descripcionDanio} /> : null}
+          <Linea
+            etiqueta="Ubicación"
+            valor={ubicacion ? `${textoCoordenadas(ubicacion)}\n${textoOrigen(ubicacion)}` : 'Sin registrar'}
+          />
           <Linea etiqueta="Foto" valor={fotoUri ? 'Adjunta' : 'Sin foto'} />
           {fotoUri ? <Image source={{ uri: fotoUri }} className="w-full aspect-[4/3] rounded-[10px] border-2 border-noche bg-linea" /> : null}
         </View>

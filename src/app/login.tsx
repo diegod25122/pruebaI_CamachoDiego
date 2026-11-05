@@ -52,9 +52,9 @@ export default function PantallaLogin() {
       bajada="Ingresa con el correo y la contraseña de tu cuenta."
       estiloHoja={estilo}
       pie={
-        <View className="flex-row justify-center items-center gap-1.5">
-          <Text className="text-tenue text-[15px]">¿Aún no tienes cuenta?</Text>
-          <Boton variante="texto" titulo="Crea una" onPress={() => router.push('/crear-cuenta')} />
+        <View className="items-center mt-2 px-6">
+          <Text className="text-tenue text-[15px] text-center">¿Aún no tienes cuenta?</Text>
+          <Boton variante="texto" titulo="Crear una cuenta" onPress={() => router.push('/crear-cuenta')} />
         </View>
       }>
       <Text className={tx.subtitulo}>Iniciar jornada</Text>
@@ -77,6 +77,7 @@ export default function PantallaLogin() {
       />
       <Campo
         etiqueta="Contraseña"
+        placeholder="••••••••"
         value={clave}
         onChangeText={(t) => {
           setClave(t);

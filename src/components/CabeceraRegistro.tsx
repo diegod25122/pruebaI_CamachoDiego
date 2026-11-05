@@ -6,7 +6,7 @@ import type { Borrador } from '@/db/borradorRepo';
 
 interface Props {
   borrador: Borrador;
-  paso: 1 | 2 | 3;
+  paso: 1 | 2 | 3 | 4;
   onSalir: () => void;
 }
 

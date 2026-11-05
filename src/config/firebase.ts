@@ -16,6 +16,17 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Si falta .env.local, Firebase lanza un "auth/invalid-api-key" poco claro.
+const faltantes = Object.entries(firebaseConfig)
+  .filter(([, valor]) => !valor)
+  .map(([clave]) => clave);
+if (faltantes.length) {
+  throw new Error(
+    `Falta la configuración de Firebase (${faltantes.join(', ')}). ` +
+      'Copia .env.example como .env.local, pon los valores de tu proyecto y reinicia con "npx expo start -c".',
+  );
+}
+
 // Con Fast Refresh este módulo puede ejecutarse más de una vez:
 // getApps() evita el error "Firebase App named '[DEFAULT]' already exists".
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);

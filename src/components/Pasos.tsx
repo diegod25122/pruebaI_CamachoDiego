@@ -4,7 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 
 import { tx } from '@/constants/clases';
 
-const NOMBRES = ['Estado y lectura', 'Consumo y foto', 'Revisar y guardar'];
+const NOMBRES = ['Estado y lectura', 'Consumo y foto', 'Ubicación', 'Revisar y guardar'];
 
 function Barra({ hecha }: { hecha: boolean }) {
   const lleno = useSharedValue(hecha ? 100 : 0);
@@ -21,16 +21,16 @@ function Barra({ hecha }: { hecha: boolean }) {
 
 // R8: el técnico sabe en qué parte del registro va. La barra del paso actual
 // se llena con una animación corta al llegar a cada pantalla.
-export function Pasos({ actual }: { actual: 1 | 2 | 3 }) {
+export function Pasos({ actual }: { actual: 1 | 2 | 3 | 4 }) {
   return (
-    <View className="gap-2" accessibilityLabel={`Paso ${actual} de 3: ${NOMBRES[actual - 1]}`}>
+    <View className="gap-2" accessibilityLabel={`Paso ${actual} de ${NOMBRES.length}: ${NOMBRES[actual - 1]}`}>
       <View className="flex-row gap-1.5">
         {NOMBRES.map((_, i) => (
           <Barra key={i} hecha={i < actual} />
         ))}
       </View>
       <Text className={tx.etiqueta}>
-        Paso {actual} de 3 · <Text className="text-noche">{NOMBRES[actual - 1]}</Text>
+        Paso {actual} de {NOMBRES.length} · <Text className="text-noche">{NOMBRES[actual - 1]}</Text>
       </Text>
     </View>
   );

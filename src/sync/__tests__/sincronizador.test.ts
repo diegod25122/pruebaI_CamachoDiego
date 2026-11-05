@@ -63,7 +63,8 @@ function lectura(id: string, cambios: Partial<LecturaLocal> = {}): LecturaLocal 
     lecturaAnterior: null, consumo: null, consumoPromedio: null, anomalo: false,
     anomaliaConfirmada: false, fotoNombre: null, registradaEn: '2026-10-28T10:00:00Z',
     actualizadaEn: '2026-10-28T10:00:00Z', verificacion: 'pendiente', envio: 'pendiente',
-    mensaje: null, remoteId: null, enviadaEn: null, intentos: 0, ...cambios,
+    mensaje: null, remoteId: null, enviadaEn: null, intentos: 0,
+    ubicacion: { latitud: -0.2105, longitud: -78.4895, precision: 8, origen: 'gps' }, ...cambios,
   };
 }
 

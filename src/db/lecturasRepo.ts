@@ -1,5 +1,6 @@
 import { baseLista } from '@/db/database';
 import type { EstadoEnvio, EstadoMedidor, LecturaLocal, Verificacion } from '@/domain/lectura';
+import type { OrigenUbicacion, Ubicacion } from '@/domain/ubicacion';
 
 interface Fila {
   id: string;
@@ -24,6 +25,25 @@ interface Fila {
   remote_id: string | null;
   enviada_en: string | null;
   intentos: number;
+  latitud: number | null;
+  longitud: number | null;
+  precision_gps: number | null;
+  origen_ubicacion: string | null;
+}
+
+function ubicacionDeFila(f: Fila): Ubicacion | null {
+  if (f.latitud === null || f.longitud === null) return null;
+  return {
+    latitud: f.latitud,
+    longitud: f.longitud,
+    precision: f.precision_gps,
+    origen: (f.origen_ubicacion as OrigenUbicacion | null) ?? 'gps',
+  };
+}
+
+// Columnas de la ubicación en el orden latitud, longitud, precision_gps, origen_ubicacion.
+function valoresUbicacion(u: Ubicacion | null): (number | string | null)[] {
+  return u ? [u.latitud, u.longitud, u.precision, u.origen] : [null, null, null, null];
 }
 
 function desdeFila(f: Fila): LecturaLocal {
@@ -42,6 +62,7 @@ function desdeFila(f: Fila): LecturaLocal {
     anomalo: f.anomalo === 1,
     anomaliaConfirmada: f.anomalia_confirmada === 1,
     fotoNombre: f.foto_nombre,
+    ubicacion: ubicacionDeFila(f),
     registradaEn: f.registrada_en,
     actualizadaEn: f.actualizada_en,
     verificacion: f.verificacion as Verificacion,
@@ -107,13 +128,15 @@ export async function insertarLectura(l: LecturaLocal): Promise<void> {
       id, medidor_codigo, periodo, tecnico_codigo, estado_medidor, lectura, motivo,
       descripcion_danio, lectura_anterior, consumo, consumo_promedio, anomalo,
       anomalia_confirmada, foto_nombre, registrada_en, actualizada_en, verificacion,
-      envio, mensaje, remote_id, enviada_en, intentos
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      envio, mensaje, remote_id, enviada_en, intentos,
+      latitud, longitud, precision_gps, origen_ubicacion
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       l.id, l.medidorCodigo, l.periodo, l.tecnicoCodigo, l.estadoMedidor, l.lectura, l.motivo,
       l.descripcionDanio, l.lecturaAnterior, l.consumo, l.consumoPromedio, l.anomalo ? 1 : 0,
       l.anomaliaConfirmada ? 1 : 0, l.fotoNombre, l.registradaEn, l.actualizadaEn, l.verificacion,
       l.envio, l.mensaje, l.remoteId, l.enviadaEn, l.intentos,
+      ...valoresUbicacion(l.ubicacion),
     ],
   );
 }
@@ -126,11 +149,13 @@ export async function corregirLectura(l: LecturaLocal): Promise<void> {
     `UPDATE lecturas SET
       estado_medidor = ?, lectura = ?, motivo = ?, descripcion_danio = ?, lectura_anterior = ?,
       consumo = ?, consumo_promedio = ?, anomalo = ?, anomalia_confirmada = ?, foto_nombre = ?,
+      latitud = ?, longitud = ?, precision_gps = ?, origen_ubicacion = ?,
       actualizada_en = ?, verificacion = 'pendiente', envio = 'pendiente', mensaje = NULL
      WHERE id = ? AND envio IN ('pendiente', 'revision')`,
     [
       l.estadoMedidor, l.lectura, l.motivo, l.descripcionDanio, l.lecturaAnterior,
       l.consumo, l.consumoPromedio, l.anomalo ? 1 : 0, l.anomaliaConfirmada ? 1 : 0, l.fotoNombre,
+      ...valoresUbicacion(l.ubicacion),
       l.actualizadaEn, l.id,
     ],
   );

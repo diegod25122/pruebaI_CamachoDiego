@@ -4,7 +4,8 @@ import { baseLista } from '@/db/database';
 import type { Medidor, Referencia } from '@/domain/medidor';
 import type { DatosCaptura } from '@/domain/reglas';
 
-export type PasoRegistro = 1 | 2 | 3;
+// Taller 7: el paso 3 es la ubicación; el resumen pasa a ser el 4.
+export type PasoRegistro = 1 | 2 | 3 | 4;
 
 export interface Borrador {
   version: 1;
